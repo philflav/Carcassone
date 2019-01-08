@@ -116,6 +116,14 @@ public class BoardManager : Singleton<BoardManager>
             }
         }
     }
+    private GameObject drawTile()
+    {
+        //draw a tile at random for now
+
+        GameObject tile = randomTilePrefab[Random.Range(0, randomTilePrefab.Length)];
+
+        return tile;
+    }
     private bool CheckNeighbours(TileScript checkTile, Point checkPoint)
     {
         //Checks any neighbouring Tiles N,S,E & W of check tile
@@ -280,14 +288,6 @@ public class BoardManager : Singleton<BoardManager>
         return tile;
     }
 
-    private GameObject drawTile()
-    {
-        //draw a tile at random for now
-
-        GameObject tile = randomTilePrefab[Random.Range(0, randomTilePrefab.Length)];
-
-        return tile;
-    }
      
     private void DictDebug()
     {
