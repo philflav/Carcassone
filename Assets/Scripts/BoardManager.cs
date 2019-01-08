@@ -96,7 +96,8 @@ public class BoardManager : Singleton<BoardManager>
                     //pick a random tile to place here
                     while (!CheckNeighbours(newTile.GetComponent<TileScript>(), currentPoint))
                     {
-                        newTile= drawTile();
+                        newTile= Instance.drawTile();
+                        newTile.name = "Test name";
 
                         newnode = new Node(newTile.GetComponent<TileScript>());
                         i++;
@@ -190,7 +191,7 @@ public class BoardManager : Singleton<BoardManager>
     {
         //returns true if checktile  matches refTile in Diretion specified
 
-        //test of code revertion. If this worked this line has gone!
+    
 
 
         Debug.Log("Checking " + checkTile + " with " + refTile + " in direction " + direction);
@@ -249,7 +250,7 @@ public class BoardManager : Singleton<BoardManager>
 
 
     }
-    private TileScript RotateTile(TileScript tile, int rot)
+    private GameObject RotateTile(GameObject tile, int rot)
     {
         //Rotates sprite and edges
 
@@ -258,20 +259,20 @@ public class BoardManager : Singleton<BoardManager>
         if (rot == 90)
         {
             angle = new Vector3(0, 0, 90);
-            tile.RotateEdges90();
-            Debug.Log(tile.ToString() + "R" + tile.EdgeString());
+            tile.GetComponent<TileScript>().RotateEdges90();
+            Debug.Log(tile.ToString() + "R" + tile.GetComponent<TileScript>().EdgeString());
         }
         else if (rot == 180)
         {
             angle = new Vector3(0, 0, 180);
-            tile.RotateEdges180();
-            Debug.Log(tile.ToString() + "R" + tile.EdgeString());
+            tile.GetComponent<TileScript>().RotateEdges180();
+            Debug.Log(tile.ToString() + "R" + tile.GetComponent<TileScript>().EdgeString());
         }
         else if (rot == 270 || rot == -90)
         {
             angle = new Vector3(0, 0, 270);
-            tile.RotateEdges270();
-            Debug.Log(tile.ToString() + "R" + tile.EdgeString());
+            tile.GetComponent<TileScript>().RotateEdges270();
+            Debug.Log(tile.ToString() + "R" + tile.GetComponent<TileScript>().EdgeString());
         }
 
         tile.transform.eulerAngles = angle;
@@ -283,7 +284,9 @@ public class BoardManager : Singleton<BoardManager>
     {
         //draw a tile at random for now
 
-        GameObject tile = randomTilePrefab[Random.Range(0, randomTilePrefab.Length)];
+        GameObject tile = Instance.randomTilePrefab[Random.Range(0, randomTilePrefab.Length)];
+
+        tile = RotateTile(tile, 90); //test rotation of 90
 
         return tile;
     }
