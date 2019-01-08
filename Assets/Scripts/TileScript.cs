@@ -44,11 +44,11 @@ public class TileScript : MonoBehaviour
     //this function cycles edge properties by 90 in CW direction
     {
         Structure tmp = new Structure();
-        tmp = this.N;
-        this.N = this.E;
-        this.E = this.S;
-        this.S = this.W;
-        this.W = tmp;
+        tmp = N;
+        N = E;
+        E = S;
+        S = W;
+        W = tmp;
 
     }
     public void RotateEdges180()
