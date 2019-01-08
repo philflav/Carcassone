@@ -179,6 +179,8 @@ public class BoardManager : Singleton<BoardManager>
     {
         //returns true if checktile  matches refTile in Diretion specified
 
+        //test of code revertion. If this worked this line has gone!
+
 
         Debug.Log("Checking " + checkTile + " with " + refTile + " in direction " + direction);
 
@@ -198,6 +200,7 @@ public class BoardManager : Singleton<BoardManager>
         {
             return false;
         }
+
         Debug.Log(checkTile + " matches " + refTile );
         return true;
 
