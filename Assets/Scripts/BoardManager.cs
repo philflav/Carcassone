@@ -93,7 +93,7 @@ public class BoardManager : Singleton<BoardManager>
                 else
                 {
                     int i = 0;//loop counter
-                    //pick a random tile to place here
+                    //pick a random tile to place here ....
                     while (!CheckNeighbours(newTile.GetComponent<TileScript>(), currentPoint))
                     {
                         newTile= drawTile();
