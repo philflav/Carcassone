@@ -79,7 +79,6 @@ public class BoardManager : Singleton<BoardManager>
             for (int x = -boardSizeX/2; x <= boardSizeX/2 ; x++)
             {
                 Point currentPoint = new Point(x, y);
-                Debug.Log("AT "+ currentPoint.x + ":" + currentPoint.y);
                 GameObject newTile = drawTile();              
                 Node newnode = new Node(newTile.GetComponent<TileScript>());
 
