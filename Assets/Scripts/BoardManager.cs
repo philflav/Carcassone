@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
+//Master branch
 public class BoardManager : Singleton<BoardManager>
 {
 
