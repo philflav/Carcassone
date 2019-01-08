@@ -288,7 +288,7 @@ public class BoardManager : Singleton<BoardManager>
 
         GameObject tile = Instance.randomTilePrefab[Random.Range(0, randomTilePrefab.Length)];
 
-        tile = RotateTile(tile, 90); //test rotation of 90
+        tile = RotateTile(tile, 0); //test rotation of 0
 
         return tile;
     }
