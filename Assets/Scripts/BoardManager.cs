@@ -65,21 +65,15 @@ public class BoardManager : Singleton<BoardManager>
 
         cameraMovement.SetLimits(new Vector3(boardSizeX, boardSizeY, 0));
 
-        //initalise a current node at the centre
-
-       Node currentNode = new Node(startTilePrefab.GetComponent<TileScript>());
-       nodes.Add(new Point(0, 0), currentNode);
-
         //place the start tile
         PlaceStartTile();
 
         //fill board with random tiles
-        for (int y = -boardSizeY/2 ; y <= boardSizeY/2 ; y++)
+        for (int y = -boardSizeY/2 ; y < boardSizeY/2 ; y++)
         {
-            for (int x = -boardSizeX/2; x <= boardSizeX/2 ; x++)
+            for (int x = -boardSizeX/2; x < boardSizeX/2 ; x++)
             {
                 Point currentPoint = new Point(x, y);
-                Debug.Log("AT "+ currentPoint.x + ":" + currentPoint.y);
                 GameObject newTile = drawTile();              
                 Node newnode = new Node(newTile.GetComponent<TileScript>());
 
@@ -92,7 +86,7 @@ public class BoardManager : Singleton<BoardManager>
                 }
                 else
                 {
-                    int i = 0;//loop counter
+                    int i = 0;//attempts counter
                     //pick a random tile to place here
                     while (!CheckNeighbours(newTile.GetComponent<TileScript>(), currentPoint))
                     {
@@ -108,12 +102,11 @@ public class BoardManager : Singleton<BoardManager>
                         }
                     }
                 }
-                PlaceTile(newTile, currentPoint);
-                nodes.Add(currentPoint, new Node(newTile.GetComponent<TileScript>()));
-                DictDebug();
+                PlaceTile(newTile, currentPoint);               
 
             }
         }
+        DictDebug(); //log the final nodes Dictionary
     }
     private bool CheckNeighbours(TileScript checkTile, Point checkPoint)
     {
@@ -131,9 +124,8 @@ public class BoardManager : Singleton<BoardManager>
             //CheckDirection North
             
             TileScript NneighbourNode = nodes[checkPoint.northNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking North :");
             northCheck = CheckDirection(checkTile, NneighbourNode, TileScript.Direction.North);
-            Debug.Log(northCheck.ToString());
+            Debug.Log("Checking North :"+northCheck.ToString());
         }
         else
         {
@@ -144,9 +136,8 @@ public class BoardManager : Singleton<BoardManager>
         {
             //CheckDirection South
             TileScript SneighbourNode = nodes[checkPoint.southNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking South : ");
             southCheck = CheckDirection(checkTile, SneighbourNode, TileScript.Direction.South);
-            Debug.Log(southCheck.ToString());
+            Debug.Log("Checking South : "+southCheck.ToString());
         }
         else
         {
@@ -157,9 +148,8 @@ public class BoardManager : Singleton<BoardManager>
         {
             //CheckDirection East
             TileScript EneighbourNode = nodes[checkPoint.eastNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking East :");
             eastCheck = CheckDirection(checkTile, EneighbourNode, TileScript.Direction.East);
-            Debug.Log(eastCheck.ToString());
+            Debug.Log("Checking East :"+eastCheck.ToString());
         }
         else
         {
@@ -170,9 +160,8 @@ public class BoardManager : Singleton<BoardManager>
         { 
             //CheckDirection West
             TileScript WneighbourNode = nodes[checkPoint.westNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking West :");
             westCheck = CheckDirection(checkTile, WneighbourNode, TileScript.Direction.West);
-            Debug.Log(westCheck.ToString());
+            Debug.Log("Checking West :"+westCheck.ToString());
         }
         else
         {
@@ -226,6 +215,7 @@ public class BoardManager : Singleton<BoardManager>
     {
         TileScript newTile = Instantiate(tilePrefab).GetComponent<TileScript>();
         newTile.Move(new Vector2(TileSize * point.x, TileSize * point.y));
+        nodes.Add(point, new Node(newTile.GetComponent<TileScript>())); //Add the new tile to the node map
 
         Debug.Log("Placed " + tilePrefab.name + " at " + point.x +":"+point.y);
         
@@ -289,7 +279,7 @@ public class BoardManager : Singleton<BoardManager>
     {
         for (int i = 0; i < nodes.Count; i++)
         {
-            Debug.Log("[" + nodes.Keys.ElementAt(i).x+","+ nodes.Keys.ElementAt(i).y + "] : "+  nodes[nodes.Keys.ElementAt(i)].TileRef);
+            Debug.Log("Node "+i+" [" + nodes.Keys.ElementAt(i).x+","+ nodes.Keys.ElementAt(i).y + "] : "+  nodes[nodes.Keys.ElementAt(i)].TileRef);
         }
     }
 }
