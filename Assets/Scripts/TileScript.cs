@@ -7,10 +7,7 @@ using UnityEngine.EventSystems;
 public class TileScript : MonoBehaviour
 {
     public Point GridPosition { get; private set; }
-
     private SpriteRenderer spriteRenderer;
-
-
     public Vector2 WorldPosition
     {
         get
