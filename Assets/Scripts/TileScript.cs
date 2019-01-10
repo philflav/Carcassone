@@ -7,10 +7,7 @@ using UnityEngine.EventSystems;
 public class TileScript : MonoBehaviour
 {
     public Point GridPosition { get; private set; }
-
     private SpriteRenderer spriteRenderer;
-
-
     public Vector2 WorldPosition
     {
         get
@@ -20,58 +17,155 @@ public class TileScript : MonoBehaviour
         }
     }
     public enum Structure { Road, City, Field, Monastry, Shield, River, Village };
-    public enum Direction { North, South, East, West}
+    public enum Direction { North, South, East, West }
     [SerializeField]
     Structure N, E, S, W, C;  //edges and centre of tile 
+
+    public Direction placeDirection; //tile placement direction for Up
+
 
     void start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+
     }
 
     public void Setup(Point gridPos, Vector3 worldPos) {
 
         this.GridPosition = gridPos;
         transform.position = worldPos;
+
         BoardManager.Instance.tiles.Add(gridPos, this);
+
     }
     public void Move(Vector2 newposition)
     {
         transform.position = newposition;
-    }
-
-    public void RotateEdges90()
-    //this function cycles edge properties by 90 in CW direction
-    {
-        Structure tmp = new Structure();
-        tmp = this.N;
-        this.N = this.E;
-        this.E = this.S;
-        this.S = this.W;
-        this.W = tmp;
+        Rotation();
 
     }
-    public void RotateEdges180()
-    {
-        RotateEdges90();
-        RotateEdges90();
-    }
 
-    public void RotateEdges270()
+    public float Rotation()
     {
-        RotateEdges90();
-        RotateEdges90();
-        RotateEdges90();
+        Vector3 rot = this.transform.eulerAngles;
+
+        Debug.Log(this.name + this.transform.rotation + "direction " + this.placeDirection);
+
+        return rot.z;
     }
 
     public Structure East { get => this.E; }
     public Structure West { get => this.W; }
     public Structure North { get => this.N; }
-    public Structure South{ get => this.S; }
+    public Structure South { get => this.S; }
     public Structure Centre { get => this.C; }
 
 
 
+    public Structure Up ()
+    //what is edge Structure on Up on this instance.
+   {       
+    
+        if (this.placeDirection == Direction.North)
+        {
+        Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
+        return this.North;
+        }
+        else if(this.placeDirection == Direction.East)
+        {
+        Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
+        return this.West;
+        }
+        else if(this.placeDirection == Direction.South)
+        {
+        Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
+        return this.South;
+        }
+        else
+        {
+        Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
+        return this.East;
+        }
+    } 
+
+
+    public Structure Down()
+    //what is edge Structure on Down on this instance.
+    {        
+        if (this.placeDirection == Direction.North)
+        {
+            Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
+            return this.South;
+        }
+        else if (this.placeDirection == Direction.East)
+        {
+            Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
+            return this.East;
+        }
+        else if (this.placeDirection == Direction.South)
+        {
+            Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
+            return this.North;
+        }
+        else
+        {
+            Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
+            return this.West;
+        }
+    }
+    public Structure Right()
+    //what is edge Structure on  Right on this instance.
+    {     
+        if (this.placeDirection == Direction.North)
+        {
+            Debug.Log("Checking Right on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
+            return this.East;
+        }
+        else if (this.placeDirection == Direction.East)
+        {
+            Debug.Log("Checking Right on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
+            return this.North;
+        }
+        else if (this.placeDirection == Direction.South)
+        {
+            Debug.Log("Checking RIght on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
+            return this.West;
+        }
+        else
+        {
+            Debug.Log("Checking RIght on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
+
+            return this.South;
+        }
+    }
+    public Structure Left()
+    //what is edge Structure on the Left on this instance.
+    {
+        if (this.placeDirection == Direction.North)
+        {
+            Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
+
+            return this.West;
+        }
+        else if (this.placeDirection == Direction.East)
+        {
+            Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
+
+            return this.South;
+        }
+        else if (this.placeDirection == Direction.South)
+        {
+            Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
+
+            return this.East;
+        }
+        else
+        {
+            Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
+
+            return this.North;
+        }
+    }
     //for debugging
     public String EdgeString()
     {
@@ -136,3 +230,4 @@ public class TileScript : MonoBehaviour
         
     
 }
+
