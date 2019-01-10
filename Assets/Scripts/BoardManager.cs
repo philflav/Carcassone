@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -18,6 +19,8 @@ public class BoardManager : Singleton<BoardManager>
     [SerializeField]
     GameObject[] randomTilePrefab;
 
+ 
+
     public Dictionary<Point, TileScript> tiles { get; set; }
 
     public Dictionary<Point, Node> nodes { get; set; }
@@ -36,6 +39,7 @@ public class BoardManager : Singleton<BoardManager>
     // Start is called before the first frame update
     void Start()
     {
+        //UnityEngine.Random.seed = 42; //Uncomment here to create a repeatable map
         CreateBoard();
     }
 
@@ -54,8 +58,8 @@ public class BoardManager : Singleton<BoardManager>
         nodes = new Dictionary<Point, Node>();
 
         //Assume 20x20 board to start with - make it adaptive later!
-        int boardSizeX = 9;
-        int boardSizeY = 9;
+        int boardSizeX = 20;
+        int boardSizeY = 20;
 
         Camera.main.orthographicSize = boardSizeX / 2;
 
@@ -84,28 +88,42 @@ public class BoardManager : Singleton<BoardManager>
                     //Grid position is occupied - move on
                     continue;
                 }
-                else
+                else //contiue with placing tiles
                 {
-                    Debug.Log("AT "+ currentPoint.x + ":" + currentPoint.y);
-                    //pick a random tile to place here
-
-                    GameObject checkTile = drawRandomTile(); 
-                    
-                    //try in each rotation
-                    //pick a random rotation for now!
-                    int [] randomrot =new int[4] { 0, 90, 180, 270 }; 
-                    Vector3 rot = new Vector3(0, 0, randomrot[0]);
-                    checkTile.transform.Rotate(rot);
-
-                    //check any neighbouring tiles for a match
-                    if (CheckNeighbours(checkTile.GetComponent<TileScript>(), currentPoint, rot))
+                    while (!nodes.ContainsKey(currentPoint)) //keep looking until we find a suitable tile
                     {
-                           //if there is a fit place the tile and update nodes list
-                            Node newnode = new Node(checkTile.GetComponent<TileScript>());
-                            Debug.Log(" New instance is -" + checkTile.name + " rotation :" + rot.z);
-                            PlaceNewTile(checkTile, currentPoint, rot);
-                        
+                        Debug.Log("AT " + currentPoint.x + ":" + currentPoint.y);
+                        //pick a random tile to place here
+
+                        GameObject checkTile = drawRandomTile();
+
+                        //try in each rotation
+
+                        //Choose a placement direction at random
+
+                        int PlaceDirection = UnityEngine.Random.Range(0, 4);
+                        //PlaceDirection = 1;
+                        TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
+
+                        if (nodes.ContainsKey(currentPoint))
+                        {
+                            //Grid position is occupied - move on
+                            continue;
+                        }
+                        else
+                        {
+                            checkTile.GetComponent<TileScript>().placeDirection = directions[PlaceDirection]; //rotate the candiadte tile
+                                                                                                              //check any neighbouring tiles for a match
+                            if (CheckNeighbours(checkTile.GetComponent<TileScript>(), currentPoint))
+                            {
+                                //if there is a fit, place the tile and update nodes list
+                                Node newnode = new Node(checkTile.GetComponent<TileScript>());
+                                Debug.Log(" New instance is -" + checkTile.name);
+                                PlaceNewTile(checkTile, currentPoint, directions[PlaceDirection]);
+                            }
+                        }
                     }
+
                 }
             }
         }
@@ -116,73 +134,73 @@ public class BoardManager : Singleton<BoardManager>
     {
         //draw a tile at random for now
 
-        GameObject newtile = Instance.randomTilePrefab[Random.Range(0, randomTilePrefab.Length)];
- 
+        GameObject newtile = Instance.randomTilePrefab[UnityEngine.Random.Range(0, randomTilePrefab.Length)];
 
+        //GameObject newtile = Instance.randomTilePrefab[4];
         return newtile;
     }
-    private bool CheckNeighbours(TileScript checkTile, Point checkPoint, Vector3 rot)
+    private bool CheckNeighbours(TileScript checkTile, Point checkPoint)
     {
-        //Checks any neighbouring Tiles N,S,E & W of check tile with rotation -rot
+        //Checks any neighbouring Tiles N,S,E & W of check tile
 
         bool northCheck = true;
         bool southCheck = true;
         bool eastCheck = true;
         bool westCheck = true;
 
-        Debug.Log("Checking Neighbours for Node at "+checkPoint.x + ":" + checkPoint.y + " with rotation "+rot.z);
+        Debug.Log("Checking Neighbours for Node at "+checkPoint.x + ":" + checkPoint.y );
 
         if (nodes.ContainsKey(checkPoint.northNeighbour)){
 
             //CheckDirection North
             
             TileScript NneighbourNode = nodes[checkPoint.northNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking North :");
+            Debug.Log("Checking North :/n");
             northCheck = CheckDirection(checkTile, NneighbourNode, TileScript.Direction.North);
             Debug.Log(northCheck.ToString());
         }
         else
         {
-            Debug.Log("No North neighbour check");
+            Debug.Log("No North neighbour check required");
         }
 
         if (nodes.ContainsKey(checkPoint.southNeighbour)&&northCheck)
         {
             //CheckDirection South
             TileScript SneighbourNode = nodes[checkPoint.southNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking South : ");
+            Debug.Log("Checking South :/n");
             southCheck = CheckDirection(checkTile, SneighbourNode, TileScript.Direction.South);
             Debug.Log(southCheck.ToString());
         }
         else
         {
-            Debug.Log("No South neighbour check");
+            Debug.Log("No South neighbour check required");
         }
 
         if (nodes.ContainsKey(checkPoint.eastNeighbour)&&southCheck)
         {
             //CheckDirection East
             TileScript EneighbourNode = nodes[checkPoint.eastNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking East :");
+            Debug.Log("Checking East :/n");
             eastCheck = CheckDirection(checkTile, EneighbourNode, TileScript.Direction.East);
             Debug.Log(eastCheck.ToString());
         }
         else
         {
-            Debug.Log("No East neighbour check");
+            Debug.Log("No East neighbour check required");
         }
 
         if (nodes.ContainsKey(checkPoint.westNeighbour)&&eastCheck)
         { 
             //CheckDirection West
             TileScript WneighbourNode = nodes[checkPoint.westNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking West :");
+            Debug.Log("Checking West : /n");
             westCheck = CheckDirection(checkTile, WneighbourNode, TileScript.Direction.West);
             Debug.Log(westCheck.ToString());
         }
         else
         {
-            Debug.Log("No West neighbour check");
+            Debug.Log("No West neighbour check required");
         }
 
 
@@ -195,6 +213,7 @@ public class BoardManager : Singleton<BoardManager>
       private bool CheckDirection(TileScript CheckTile, TileScript NeighbourTile, TileScript.Direction direction)
     {
         Debug.Log("Checking " + CheckTile + " with " + NeighbourTile + " in direction " + direction);
+  
    
 
         if(direction == TileScript.Direction.North && CheckTile.Up() != NeighbourTile.Down() )
@@ -228,16 +247,29 @@ public class BoardManager : Singleton<BoardManager>
     {
         Point startSpawn = new Point(0, 0);    
 
-        PlaceNewTile(startTilePrefab, startSpawn , new Vector3(0,0,0));
+        PlaceNewTile(startTilePrefab, startSpawn , TileScript.Direction.North);
 
     }
 
-    public void PlaceNewTile(GameObject tile, Point point, Vector3 rot)
+    public void PlaceNewTile(GameObject tile, Point point, TileScript.Direction direction)
     {
-        GameObject newTile = Instantiate(tile, new Vector2(TileSize * point.x, TileSize * point.y), Quaternion.Euler(rot)); 
+        //setup tile placement rotation vector based on which direction is Up
+
+        Vector3 rot = new Vector3(0, 0, 0);
+        
+        if (direction == TileScript.Direction.North) { rot = new Vector3(0,0,0); }
+        if (direction == TileScript.Direction.East) { rot =  new Vector3(0, 0, 270); }
+        if (direction == TileScript.Direction.South) { rot = new Vector3(0, 0, 180); }
+        if (direction == TileScript.Direction.West) { rot = new Vector3(0, 0, 90); }
+
+
+        GameObject newTile = Instantiate(tile, new Vector2(TileSize * point.x, TileSize * point.y), Quaternion.identity);
+
+        newTile.transform.Rotate(rot);
 
         TileScript newTileScript = newTile.GetComponent<TileScript>();
-        Debug.Log("Placed " + newTile.name + " at " + point.x +":"+point.y);
+        Debug.Log("Placed " + newTile.name + " at " + point.x +":"+point.y + "pointing "+direction);
+        newTileScript.placeDirection = direction;
         nodes.Add(point, new Node(newTile.GetComponent<TileScript>()));
 
         //Debugging
@@ -264,7 +296,7 @@ public class BoardManager : Singleton<BoardManager>
     {
         for (int i = 0; i < nodes.Count; i++)
         {
-            Debug.Log("[" + nodes.Keys.ElementAt(i).x+","+ nodes.Keys.ElementAt(i).y + "] : "+  nodes[nodes.Keys.ElementAt(i)].TileRef);
+            Debug.Log("[" + nodes.Keys.ElementAt(i).x+","+ nodes.Keys.ElementAt(i).y + "] : "+ nodes[nodes.Keys.ElementAt(i)].TileRef.transform.rotation +" "+ nodes[nodes.Keys.ElementAt(i)].TileRef);
         }
     }
 }
