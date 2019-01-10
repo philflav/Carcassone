@@ -13,11 +13,16 @@ public class BoardManager : Singleton<BoardManager>
     private CameraMovement cameraMovement;
 
     [SerializeField]
+    int Board_size;
+
+    [SerializeField]
     GameObject startTilePrefab;
     [SerializeField]
     GameObject emptyTilePrefab;
     [SerializeField]
     GameObject[] randomTilePrefab;
+
+
 
  
 
@@ -58,8 +63,8 @@ public class BoardManager : Singleton<BoardManager>
         nodes = new Dictionary<Point, Node>();
 
         //Assume 20x20 board to start with - make it adaptive later!
-        int boardSizeX = 20;
-        int boardSizeY = 20;
+        int boardSizeX = Board_size;
+        int boardSizeY = Board_size;
 
         Camera.main.orthographicSize = boardSizeX / 2;
 
@@ -112,7 +117,7 @@ public class BoardManager : Singleton<BoardManager>
                         }
                         else
                         {
-                            checkTile.GetComponent<TileScript>().placeDirection = directions[PlaceDirection]; //rotate the candiadte tile
+                            checkTile.GetComponent<TileScript>().placeDirection = directions[PlaceDirection]; //rotate the candiadate tile
                                                                                                               //check any neighbouring tiles for a match
                             if (CheckNeighbours(checkTile.GetComponent<TileScript>(), currentPoint))
                             {
