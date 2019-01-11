@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-//TIle Rotation branch
+//Tile Stack branch
 
 public class BoardManager : Singleton<BoardManager>
 {
