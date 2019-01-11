@@ -218,6 +218,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2058025560}
   - component: {fileID: 2058025559}
+  - component: {fileID: 2058025561}
   m_Layer: 0
   m_Name: BoardManager
   m_TagString: Untagged
@@ -243,7 +244,7 @@ MonoBehaviour:
     type: 3}
   emptyTilePrefab: {fileID: 1520790384673248096, guid: e6dcac8fae8cc864098bb7337a479cb4,
     type: 3}
-  randomTilePrefab:
+  gameTilePrefab:
   - {fileID: 24582800922975475, guid: 022090ca26c948e43bf12fa90900e9dd, type: 3}
   - {fileID: 1871983478237674181, guid: 1927fb5e4b2bb104a8bacbc451498d19, type: 3}
   - {fileID: 6198380037914043652, guid: 9a05c9ecae8cd9543b0a8cfd8da553f6, type: 3}
@@ -282,3 +283,15 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2058025561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2058025558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e44d7b45bda96df4e83f8db27dced398, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

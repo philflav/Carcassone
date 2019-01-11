@@ -20,10 +20,10 @@ public class BoardManager : Singleton<BoardManager>
     [SerializeField]
     GameObject emptyTilePrefab;
     [SerializeField]
-    GameObject[] randomTilePrefab;
+    GameObject[] gameTilePrefab;
 
 
-
+    private Stack cardStack;
  
 
     public Dictionary<Point, TileScript> tiles { get; set; }
@@ -45,6 +45,12 @@ public class BoardManager : Singleton<BoardManager>
     void Start()
     {
         //UnityEngine.Random.seed = 42; //Uncomment here to create a repeatable map
+
+        CardManager cardManager = new CardManager();   
+
+        cardStack = cardManager.MakeStack(gameTilePrefab);
+
+
         CreateBoard();
     }
 
@@ -56,6 +62,7 @@ public class BoardManager : Singleton<BoardManager>
 
     private void CreateBoard()
     {
+        CardManager cardManager = new CardManager();
         //create Tiles dictionary
         tiles = new Dictionary<Point, TileScript>();
 
@@ -98,33 +105,42 @@ public class BoardManager : Singleton<BoardManager>
                     while (!nodes.ContainsKey(currentPoint)) //keep looking until we find a suitable tile
                     {
                         Debug.Log("AT " + currentPoint.x + ":" + currentPoint.y);
-                        //pick a random tile to place here
+                        
+                        //pick the next card off the stack
 
-                        GameObject checkTile = drawRandomTile();
+                        GameObject checkTile = cardManager.drawCard(cardStack);
 
-                        //try in each rotation
-
-                        //Choose a placement direction at random
-
-                        int PlaceDirection = UnityEngine.Random.Range(0, 4);
-                        //PlaceDirection = 1;
-                        TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
-
-                        if (nodes.ContainsKey(currentPoint))
+                        Debug.Log(checkTile + "chosen");
+                        if (cardStack.Count>0)
+                        //see if we got a card or that the card stack is exhausted.
                         {
-                            //Grid position is occupied - move on
-                            continue;
-                        }
-                        else
-                        {
-                            checkTile.GetComponent<TileScript>().placeDirection = directions[PlaceDirection]; //rotate the candiadate tile
-                                                                                                              //check any neighbouring tiles for a match
-                            if (CheckNeighbours(checkTile.GetComponent<TileScript>(), currentPoint))
+
+
+
+                            //try in each rotation
+
+                            //Choose a placement direction at random
+
+                            int PlaceDirection = UnityEngine.Random.Range(0, 4);
+                            //PlaceDirection = 1;
+                            TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
+
+                            if (nodes.ContainsKey(currentPoint))
                             {
-                                //if there is a fit, place the tile and update nodes list
-                                Node newnode = new Node(checkTile.GetComponent<TileScript>());
-                                Debug.Log(" New instance is -" + checkTile.name);
-                                PlaceNewTile(checkTile, currentPoint, directions[PlaceDirection]);
+                                //Grid position is occupied - move on
+                                continue;
+                            }
+                            else
+                            {
+                                checkTile.GetComponent<TileScript>().placeDirection = directions[PlaceDirection]; //rotate the candiadate tile
+                                                                                                                  //check any neighbouring tiles for a match
+                                if (CheckNeighbours(checkTile.GetComponent<TileScript>(), currentPoint))
+                                {
+                                    //if there is a fit, place the tile and update nodes list
+                                    Node newnode = new Node(checkTile.GetComponent<TileScript>());
+                                    Debug.Log(" New instance is -" + checkTile.name);
+                                    PlaceNewTile(checkTile, currentPoint, directions[PlaceDirection]);
+                                }
                             }
                         }
                     }
@@ -134,15 +150,6 @@ public class BoardManager : Singleton<BoardManager>
         }
         //finished - write out the node list
         DictDebug();
-    }
-    private GameObject drawRandomTile()
-    {
-        //draw a tile at random for now
-
-        GameObject newtile = Instance.randomTilePrefab[UnityEngine.Random.Range(0, randomTilePrefab.Length)];
-
-        //GameObject newtile = Instance.randomTilePrefab[4];
-        return newtile;
     }
     private bool CheckNeighbours(TileScript checkTile, Point checkPoint)
     {
