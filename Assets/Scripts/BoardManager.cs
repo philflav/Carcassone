@@ -28,9 +28,9 @@ public class BoardManager : Singleton<BoardManager>
     private Stack cardStack;
  
 
-    public Dictionary<Point, TileScript> tiles { get; set; }
+    public Dictionary<Point, TileScript> tiles { get; set; } //not used 
 
-    public Dictionary<Point, Node> nodes { get; set; }
+    public Dictionary<Point, Node> nodes { get; set; }  // a dictionary of placed tiles
 
     //use starttile prefab to set Tilesize
     //assume square tiles for this game
@@ -53,12 +53,89 @@ public class BoardManager : Singleton<BoardManager>
         cardStack = cardManager.MakeStack(gameTilePrefab);
 
 
-        CreateBoard();
+        //CreateBoard();
+        TakeATurn();
+
     }
 
     // Update is called once per frame
     void Update()
     {
+
+    }
+
+        private void TakeATurn()
+    {
+        //this loops untill card stack is empty
+        CardManager cardManager = new CardManager();
+        //Create Nodes disctionary
+        nodes = new Dictionary<Point, Node>();
+        HashSet<Point> availableList = new HashSet<Point>(); //a node list of avaialable spaces (Points)
+        //setup directions array;
+        TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
+
+        PlaceStartTile();
+
+        bool runOnce = true;
+
+        while (cardStack.Count>0)
+        {
+            //we have remianing cards
+            //draw next card from stack
+            GameObject checkTile = cardManager.drawCard(cardStack);
+
+            //used placed cards list to create a list of available spaces
+            // clear out available list on each pass
+                      availableList.Clear();
+                    //for each node in nodelist - check for empty neighbours and add them to available list
+
+                    foreach(KeyValuePair<Point,Node> node in nodes)
+                     {
+                        if (!nodes.ContainsKey(node.Key.northNeighbour))
+                        {
+                            //no neigbour so add it to avaialble list
+                            availableList.Add(node.Key.northNeighbour);
+                        }
+                        if (!nodes.ContainsKey(node.Key.eastNeighbour))
+                        {
+                            //no neigbour so add it to avaialble list
+                            availableList.Add(node.Key.eastNeighbour);
+                        }
+                        if (!nodes.ContainsKey(node.Key.westNeighbour))
+                        {
+                            //no neigbour so add it to avaialble list
+                            availableList.Add(node.Key.westNeighbour);
+                        }
+                        if (!nodes.ContainsKey(node.Key.southNeighbour))
+                        {
+                            //no neigbour so add it to avaialble list
+                            availableList.Add(node.Key.southNeighbour);
+                        }
+                     }
+
+                    //choose a random orientation
+                        int PlaceDirection = UnityEngine.Random.Range(0, 4);
+                        checkTile.GetComponent<TileScript>().placeDirection = directions[PlaceDirection]; //rotate the candiadate tile
+                                                                                                          //check any neighbouring tiles for a match
+                    //test check tile against each avaialable space in a random orientation
+                    foreach (var node in availableList)
+                    {                                               
+                                         if (CheckNeighbours(checkTile.GetComponent<TileScript>(), node))
+                        {
+                            //if there is a fit, place the tile and update nodes list
+                            Node newnode = new Node(checkTile.GetComponent<TileScript>());
+                            PlaceNewTile(checkTile, node, directions[PlaceDirection]);
+
+                            //  forget the rest
+                             break;
+                        }
+
+            }
+
+            runOnce = false;
+        }
+            Debug.Log(availableList);
+
 
     }
 
@@ -285,6 +362,7 @@ public class BoardManager : Singleton<BoardManager>
         Debug.Log("Placed " + newTile.name + " at " + point.x +":"+point.y + "pointing "+direction);
         newTileScript.placeDirection = direction;
         nodes.Add(point, new Node(newTile.GetComponent<TileScript>()));
+
 
         //Debugging
         if (newTileScript.ThroughRoad())
