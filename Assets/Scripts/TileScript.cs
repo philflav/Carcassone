@@ -23,6 +23,9 @@ public class TileScript : MonoBehaviour
 
     public Direction placeDirection; //tile placement direction for Up
 
+    [SerializeField]
+    public int CardsInDeck = 1;
+
 
     void start()
     {

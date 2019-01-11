@@ -22,6 +22,8 @@ public class BoardManager : Singleton<BoardManager>
     [SerializeField]
     GameObject[] gameTilePrefab;
 
+    private int[] repeats; //an array to hold number of cars repeats allowed for each prefab
+
 
     private Stack cardStack;
  
@@ -85,7 +87,7 @@ public class BoardManager : Singleton<BoardManager>
 
         //place the start tile at the centre
 
-        PlaceStartTile();
+        //PlaceStartTile();
 
         //fill board with random tiles
         for (int y = -boardSizeY/2 ; y <= boardSizeY/2 ; y++)
