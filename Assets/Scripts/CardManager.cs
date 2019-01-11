@@ -37,7 +37,7 @@ public class CardManager : MonoBehaviour
                 deckCount[rnd]--;
             }
         }
-        Debug.Log(gamestack.Count);
+
         return gamestack;
     }
 
