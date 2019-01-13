@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-//Tile Stack branch
+//Infinite Board
+
+//number of each tile is specified on Unity prefab. Board can extend in any direction.
 
 public class BoardManager : Singleton<BoardManager>
 {
