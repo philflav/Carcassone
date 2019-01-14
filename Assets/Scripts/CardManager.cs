@@ -44,7 +44,7 @@ public class CardManager : MonoBehaviour
     public GameObject drawCard(Stack gamestack)
         //return next card of stack or null if stack is empty;
     {
-        if (gamestack.Count > 1)
+        if (gamestack.Count > 0)
         {
             GameObject drawncard = (GameObject)gamestack.Pop();
             return drawncard;

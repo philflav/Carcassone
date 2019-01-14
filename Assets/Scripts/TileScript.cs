@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 
 public class TileScript : MonoBehaviour
 {
-    public Point GridPosition { get; private set; }
+    public Point GridPosition { get; set; }
     private SpriteRenderer spriteRenderer;
     public Vector2 WorldPosition
     {
@@ -17,7 +17,7 @@ public class TileScript : MonoBehaviour
         }
     }
     public enum Structure { Road, City, Field, Monastry, Shield, River, Village };
-    public enum Direction { North, South, East, West }
+    public enum Direction { North, South, East, West } //card directions
     [SerializeField]
     Structure N, E, S, W, C;  //edges and centre of tile 
 
@@ -38,8 +38,6 @@ public class TileScript : MonoBehaviour
         this.GridPosition = gridPos;
         transform.position = worldPos;
 
-        BoardManager.Instance.tiles.Add(gridPos, this);
-
     }
     public void Move(Vector2 newposition)
     {
@@ -52,7 +50,7 @@ public class TileScript : MonoBehaviour
     {
         Vector3 rot = this.transform.eulerAngles;
 
-        Debug.Log(this.name + this.transform.rotation + "direction " + this.placeDirection);
+        //Debug.Log(this.name + this.transform.rotation + "direction " + this.placeDirection);
 
         return rot.z;
     }
@@ -71,22 +69,22 @@ public class TileScript : MonoBehaviour
     
         if (this.placeDirection == Direction.North)
         {
-        Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
+        //Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
         return this.North;
         }
         else if(this.placeDirection == Direction.East)
         {
-        Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
+       // Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
         return this.West;
         }
         else if(this.placeDirection == Direction.South)
         {
-        Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
+       // Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
         return this.South;
         }
         else
         {
-        Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
+        //Debug.Log("Checking Up on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
         return this.East;
         }
     } 
@@ -97,22 +95,22 @@ public class TileScript : MonoBehaviour
     {        
         if (this.placeDirection == Direction.North)
         {
-            Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
+         //   Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
             return this.South;
         }
         else if (this.placeDirection == Direction.East)
         {
-            Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
+         //   Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
             return this.East;
         }
         else if (this.placeDirection == Direction.South)
         {
-            Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
+           // Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
             return this.North;
         }
         else
         {
-            Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
+         //   Debug.Log("Checking Down on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
             return this.West;
         }
     }
@@ -121,22 +119,22 @@ public class TileScript : MonoBehaviour
     {     
         if (this.placeDirection == Direction.North)
         {
-            Debug.Log("Checking Right on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
+         //   Debug.Log("Checking Right on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
             return this.East;
         }
         else if (this.placeDirection == Direction.East)
         {
-            Debug.Log("Checking Right on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
+         //   Debug.Log("Checking Right on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
             return this.North;
         }
         else if (this.placeDirection == Direction.South)
         {
-            Debug.Log("Checking RIght on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
+          //  Debug.Log("Checking RIght on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
             return this.West;
         }
         else
         {
-            Debug.Log("Checking RIght on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
+         //   Debug.Log("Checking RIght on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
 
             return this.South;
         }
@@ -146,25 +144,25 @@ public class TileScript : MonoBehaviour
     {
         if (this.placeDirection == Direction.North)
         {
-            Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
+          //  Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.West);
 
             return this.West;
         }
         else if (this.placeDirection == Direction.East)
         {
-            Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
+          //  Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.South);
 
             return this.South;
         }
         else if (this.placeDirection == Direction.South)
         {
-            Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
+          //  Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.East);
 
             return this.East;
         }
         else
         {
-            Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
+          //  Debug.Log("Checking Left on " + this.name+" pointing "+this.placeDirection+"  its " + this.North);
 
             return this.North;
         }
@@ -181,42 +179,30 @@ public class TileScript : MonoBehaviour
         return EdgeString;
     }
 
-    public bool ThroughRoad()
+    public List <Direction> hasRoadEdges()
     {
-        if (this.S == Structure.Road && this.N == Structure.Road  && this.C != Structure.Village)
-        {
-            return true;
-        }
-        else if (this.S == Structure.Road && this.E == Structure.Road && this.C != Structure.Village)
-        {
-            return true;
-        }
-        else if (this.S == Structure.Road && this.W == Structure.Road && this.C != Structure.Village)
-        {
-            return true;
-        }
-        else if (this.E == Structure.Road && this.W == Structure.Road && this.C != Structure.Village)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-            
+      List <Direction> edges = new List<Direction>();
+
+        if (this.Up() == Structure.Road) edges.Add(Direction.North);
+        if (this.Right() == Structure.Road) edges.Add(Direction.East);
+        if (this.Left() == Structure.Road) edges.Add(Direction.West);
+        if (this.Down() == Structure.Road) edges.Add(Direction.South);
+        
+        return edges;
     }
-    public bool TerminatesRoad()
+    public List<Direction> hasCityEdges()
     {
-        if((this.S==Structure.Road || this.N==Structure.Road || this.E==Structure.Road ||this.W == Structure.Road) && !this.ThroughRoad())
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-            
+        List<Direction> edges = new List<Direction>();
+
+        if (this.Up() == Structure.City) edges.Add(Direction.North);
+        if (this.Right() == Structure.City) edges.Add(Direction.East);
+        if (this.Left() == Structure.City) edges.Add(Direction.West);
+        if (this.Down() == Structure.City) edges.Add(Direction.South);
+
+        return edges;
     }
+
+   
     public bool IsMonastry()
     {
         if (this.C == Structure.Monastry)
