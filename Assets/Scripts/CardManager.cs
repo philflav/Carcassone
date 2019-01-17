@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class CardManager : MonoBehaviour
 {
-     public Stack gamestack;
-     public Stack MakeStack(GameObject [] cards)
+     public Stack <GameObject> gamestack;
+     public Stack <GameObject> MakeStack(GameObject [] cards)
     {
 
 
-        gamestack = new Stack();
+        gamestack = new Stack <GameObject>();
         int numberOfCards = cards.Length;
         int stackSize = 0; //Stack size will be >= numberOfCards of cards
         int stackCount = 0;
@@ -38,15 +38,15 @@ public class CardManager : MonoBehaviour
             }
         }
 
-        return gamestack;
+        return  gamestack;
     }
 
-    public GameObject drawCard(Stack gamestack)
+    public GameObject drawCard(Stack <GameObject> gamestack)
         //return next card of stack or null if stack is empty;
     {
         if (gamestack.Count > 0)
         {
-            GameObject drawncard = (GameObject)gamestack.Pop();
+            GameObject drawncard = gamestack.Pop();
             return drawncard;
         }
         else

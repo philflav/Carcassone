@@ -16,8 +16,8 @@ public class TileScript : MonoBehaviour
                                transform.position.y - GetComponent<SpriteRenderer>().bounds.size.y / 2);
         }
     }
-    public enum Structure { Road, City, Field, Monastry, Shield, River, Village };
-    public enum Direction { North, South, East, West } //card directions
+    public enum Structure { Road,  City, Field, Monastry, Shield, River, Village }; 
+    public enum Direction { North, South, East, West} //card directions
     [SerializeField]
     Structure N, E, S, W, C;  //edges and centre of tile 
 

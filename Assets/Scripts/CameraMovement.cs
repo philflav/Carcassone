@@ -9,7 +9,7 @@ public class CameraMovement : MonoBehaviour
     private float cameraSpeed = 1;
 
     private float maxZoom = 30;
-    private float minZoom = 3;
+    private float minZoom = 2;
 
     private float xMax;
     private float yMin;

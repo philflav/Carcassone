@@ -30,11 +30,18 @@ public class BoardManager : Singleton<BoardManager>
     [SerializeField]
     GameObject[] gameTilePrefab;
 
+    public CardManager cardManager;
+
+    public HashSet<Point> availableList;
+
+    TileScript.Direction[] directions;
+
     private int[] repeats; //an array to hold number of cars repeats allowed for each prefab
 
 
-    private Stack cardStack;
- 
+    public Stack<GameObject> cardStack;
+    public GameObject checkTile;
+
     public Dictionary<Point, Node> nodes { get; set; }  // a dictionary of placed tiles
 
 
@@ -52,111 +59,113 @@ public class BoardManager : Singleton<BoardManager>
     private Vector3 worldOrigin;
 
 
- 
+
     // Start is called before the first frame update
     void Start()
     {
         UnityEngine.Random.seed = randomSeed; //Uncomment here to create a repeatable map
 
-        CardManager cardManager = new CardManager();   
+        CardManager cardManager = new CardManager();
 
-        cardStack = cardManager.MakeStack(gameTilePrefab);    
+        cardStack = cardManager.MakeStack(gameTilePrefab);
 
+        //Create Nodes dictionary
+        nodes = new Dictionary<Point, Node>();
 
-        //CreateBoard();
-        TakeATurn();
+        //Create available list
+        HashSet<Point> availableList = new HashSet<Point>(); //a node list of avaialable spaces (Points)
+
+        //setup directions array;
+        TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
+
+        PlaceStartTile();
 
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        if (Input.anyKeyDown)
+        {
+            TakeATurn();
+        }
     }
 
-        private void TakeATurn()
+    public void TakeATurn()
     {
-        //this loops untill card stack is empty
-        CardManager cardManager = new CardManager();
-
-
-
-        //Create Nodes dictionary
-        nodes = new Dictionary<Point, Node>();
-        HashSet<Point> availableList = new HashSet<Point>(); //a node list of avaialable spaces (Points)
         //setup directions array;
         TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
 
-        PlaceStartTile();
 
- 
-        while (cardStack.Count>(70-NumberOfTiles)) //there are 71 tiles in the deck. Start tile is already placed!
+        //GameObject checkTile = new GameObject();
+
+
+        if (cardStack.Count > 0) //there are 71 tiles in the deck. Start tile is already placed!
         {
             //we have remianing cards
             //draw next card from stack
-            GameObject checkTile = cardManager.drawCard(cardStack);
-            
+            checkTile = cardStack.Peek();
 
+            if (cardStack.Count > 0)
+            {
+                GameObject drawncard = cardStack.Pop();
+            }
 
             //used placed cards list to create a list of available spaces
             // clear out available list on each pass
+            HashSet<Point> availableList = new HashSet<Point>();
             availableList.Clear();
-                    //for each node in nodelist - check for empty neighbours and add them to available list
+            //for each node in nodelist - check for empty neighbours and add them to available list
 
-                    foreach(KeyValuePair<Point,Node> node in nodes)
-                     {
-                        if (!nodes.ContainsKey(node.Key.northNeighbour))
-                        {
-                            //no neigbour so add it to available list
-                            availableList.Add(node.Key.northNeighbour);
-                        }
-                        if (!nodes.ContainsKey(node.Key.eastNeighbour))
-                        {
-                            //no neigbour so add it to available list
-                            availableList.Add(node.Key.eastNeighbour);
-                        }
-                        if (!nodes.ContainsKey(node.Key.westNeighbour))
-                        {
-                            //no neigbour so add it to available list
-                            availableList.Add(node.Key.westNeighbour);
-                        }
-                        if (!nodes.ContainsKey(node.Key.southNeighbour))
-                        {
-                            //no neigbour so add it to available list
-                            availableList.Add(node.Key.southNeighbour);
-                        }
-                     }
-
-                    //choose a random orientation
-                        int PlaceDirection = UnityEngine.Random.Range(0, 4);
-                        checkTile.GetComponent<TileScript>().placeDirection = directions[PlaceDirection]; //rotate the candiadate tile
-                                                                                                          //check any neighbouring tiles for a match
-                    //test check tile against each avaialable space in a random orientation
-                    foreach (var node in availableList)
-                    {                                               
-                                         if (CheckNeighbours(checkTile.GetComponent<TileScript>(), node))
-                        {
-                            //if there is a fit, place the tile and update nodes list
-                            Node newnode = new Node(checkTile.GetComponent<TileScript>());
-                            PlaceNewTile(checkTile, node, directions[PlaceDirection]);
-
-                            //  forget the rest
-                             break;
-                        }
-
+            foreach (KeyValuePair<Point, Node> node in nodes)
+            {
+                if (!nodes.ContainsKey(node.Key.northNeighbour))
+                {
+                    //no neigbour so add it to available list
+                    availableList.Add(node.Key.northNeighbour);
+                }
+                if (!nodes.ContainsKey(node.Key.eastNeighbour))
+                {
+                    //no neigbour so add it to available list
+                    availableList.Add(node.Key.eastNeighbour);
+                }
+                if (!nodes.ContainsKey(node.Key.westNeighbour))
+                {
+                    //no neigbour so add it to available list
+                    availableList.Add(node.Key.westNeighbour);
+                }
+                if (!nodes.ContainsKey(node.Key.southNeighbour))
+                {
+                    //no neigbour so add it to available list
+                    availableList.Add(node.Key.southNeighbour);
+                }
             }
 
-       
+            //choose a random orientation
+            int PlaceDirection = UnityEngine.Random.Range(0, 4);
+            checkTile.GetComponent<TileScript>().placeDirection = directions[PlaceDirection]; //rotate the candiadate tile
+                                                                                              //check any neighbouring tiles for a match
+                                                                                              //test check tile against each avaialable space in a random orientation
+            foreach (var node in availableList)
+            {
+                if (CheckNeighbours(checkTile.GetComponent<TileScript>(), node))
+                {
+                    //if there is a fit, place the tile and update nodes list
+                    Node newnode = new Node(checkTile.GetComponent<TileScript>());
+                    PlaceNewTile(checkTile, node, directions[PlaceDirection]);
+
+                    //  forget the rest
+                    break;
+                }
+            }
         }
-            //Debug.Log(availableList);
-
-
+        //Debug.Log(availableList);
     }
 
     private void CreateBoard()
     {
         CardManager cardManager = new CardManager();
-  
+
         //Create Nodes dictionary
         nodes = new Dictionary<Point, Node>();
 
@@ -179,9 +188,9 @@ public class BoardManager : Singleton<BoardManager>
         //PlaceStartTile();
 
         //fill board with random tiles
-        for (int y = -boardSizeY/2 ; y <= boardSizeY/2 ; y++)
+        for (int y = -boardSizeY / 2; y <= boardSizeY / 2; y++)
         {
-            for (int x = -boardSizeX/2; x <= boardSizeX/2 ; x++)
+            for (int x = -boardSizeX / 2; x <= boardSizeX / 2; x++)
             {
                 Point currentPoint = new Point(x, y);
 
@@ -196,13 +205,13 @@ public class BoardManager : Singleton<BoardManager>
                     while (!nodes.ContainsKey(currentPoint)) //keep looking until we find a suitable tile
                     {
                         //Debug.Log("AT " + currentPoint.x + ":" + currentPoint.y);
-                        
+
                         //pick the next card off the stack
 
                         GameObject checkTile = cardManager.drawCard(cardStack);
 
                         //Debug.Log(checkTile + "chosen");
-                        if (cardStack.Count>0)
+                        if (cardStack.Count > 0)
                         //see if we got a card or that the card stack is exhausted.
                         {
 
@@ -252,10 +261,11 @@ public class BoardManager : Singleton<BoardManager>
 
         //Debug.Log("Checking Neighbours for Node at "+checkPoint.x + ":" + checkPoint.y );
 
-        if (nodes.ContainsKey(checkPoint.northNeighbour)){
+        if (nodes.ContainsKey(checkPoint.northNeighbour))
+        {
 
             //CheckDirection North
-            
+
             TileScript NneighbourNode = nodes[checkPoint.northNeighbour].TileRef.GetComponent<TileScript>();
             //Debug.Log("Checking North :/n");
             northCheck = CheckDirection(checkTile, NneighbourNode, TileScript.Direction.North);
@@ -266,7 +276,7 @@ public class BoardManager : Singleton<BoardManager>
             //Debug.Log("No North neighbour check required");
         }
 
-        if (nodes.ContainsKey(checkPoint.southNeighbour)&&northCheck)
+        if (nodes.ContainsKey(checkPoint.southNeighbour) && northCheck)
         {
             //CheckDirection South
             TileScript SneighbourNode = nodes[checkPoint.southNeighbour].TileRef.GetComponent<TileScript>();
@@ -279,7 +289,7 @@ public class BoardManager : Singleton<BoardManager>
             //Debug.Log("No South neighbour check required");
         }
 
-        if (nodes.ContainsKey(checkPoint.eastNeighbour)&&southCheck)
+        if (nodes.ContainsKey(checkPoint.eastNeighbour) && southCheck)
         {
             //CheckDirection East
             TileScript EneighbourNode = nodes[checkPoint.eastNeighbour].TileRef.GetComponent<TileScript>();
@@ -292,8 +302,8 @@ public class BoardManager : Singleton<BoardManager>
             //Debug.Log("No East neighbour check required");
         }
 
-        if (nodes.ContainsKey(checkPoint.westNeighbour)&&eastCheck)
-        { 
+        if (nodes.ContainsKey(checkPoint.westNeighbour) && eastCheck)
+        {
             //CheckDirection West
             TileScript WneighbourNode = nodes[checkPoint.westNeighbour].TileRef.GetComponent<TileScript>();
             //Debug.Log("Checking West : /n");
@@ -312,29 +322,29 @@ public class BoardManager : Singleton<BoardManager>
 
     }
 
-      private bool CheckDirection(TileScript CheckTile, TileScript NeighbourTile, TileScript.Direction direction)
+    private bool CheckDirection(TileScript CheckTile, TileScript NeighbourTile, TileScript.Direction direction)
     {
         //Debug.Log("Checking " + CheckTile + " with " + NeighbourTile + " in direction " + direction);
-  
-   
 
-        if(direction == TileScript.Direction.North && CheckTile.Up() != NeighbourTile.Down() )
+
+
+        if (direction == TileScript.Direction.North && CheckTile.Up() != NeighbourTile.Down())
         {
             //Debug.Log(" N Testing " + CheckTile.Up() + " with " + NeighbourTile.Down());
             return false;
         }
-        if (direction == TileScript.Direction.South && CheckTile.Down() != NeighbourTile.Up() )
+        if (direction == TileScript.Direction.South && CheckTile.Down() != NeighbourTile.Up())
         {
 
             //Debug.Log(" S Testing " + CheckTile.Down() + " with " + NeighbourTile.Up());
             return false;
         }
-        if (direction == TileScript.Direction.East && CheckTile.Right() != NeighbourTile.Left() )
+        if (direction == TileScript.Direction.East && CheckTile.Right() != NeighbourTile.Left())
         {
             //Debug.Log(" E Testing " + CheckTile.Right() + " with " + NeighbourTile.Left());
             return false;
         }
-        if (direction == TileScript.Direction.West && CheckTile.Left() != NeighbourTile.Right() )
+        if (direction == TileScript.Direction.West && CheckTile.Left() != NeighbourTile.Right())
         {
             //Debug.Log(" W Testing " + CheckTile.Left() + " with " + NeighbourTile.Right());
             return false;
@@ -344,12 +354,12 @@ public class BoardManager : Singleton<BoardManager>
         return true;
 
     }
-    
+
     private void PlaceStartTile()
     {
-        Point startSpawn = new Point(0, 0);    
+        Point startSpawn = new Point(0, 0);
 
-        PlaceNewTile(startTilePrefab, startSpawn , TileScript.Direction.North);
+        PlaceNewTile(startTilePrefab, startSpawn, TileScript.Direction.North);
 
     }
 
@@ -380,222 +390,166 @@ public class BoardManager : Singleton<BoardManager>
         score += inPlayScore(newTile);
     }
 
-   
-
-        int inPlayScore(GameObject currentCard)
-        {
-
-            //Debug.Log("Scoring :" + currentCard.name);
 
 
-            //Check for Completed Road
+    public int inPlayScore(GameObject currentCard)
+    {
 
-            return roadComplete(currentCard);
+        //Debug.Log("Scoring :" + currentCard.name);
 
-            //Check for completed city
 
-            //Check for completed monastry 
+        //Check for Completed Road
 
-            //  }
-            //return 0;  //returns score for currentCards
-        }
+        return roadComplete(currentCard);
 
-    int roadComplete(GameObject currentCard)
+        //Check for completed city
+
+        //Check for completed monastry 
+
+        // 
+        //return 0;  //returns score for currentCards
+    }
+
+    public int roadComplete(GameObject currentCard)
+
+    //check if current card completes a road and return score if its incomnplete retrun -score
+    //This assumes current card is one claimed by a Meeple and therefor only one road is to be examined
+
+    //First follow path to the start of road
+    //
+    //Now using road start follow path to the end of a road inclementing the score as we go.
     {
         int roadScore = 0;
-        int roadEdges;
-
+        int roadEdges = 0;
         bool roadEndFound = false;
+        bool roadStartFound = false;
+
+        Point currentPoint = new Point();
+        Point startPoint = new Point();
+        Point endPoint = new Point();
 
         Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
-        Stack<TileScript> tilesChecked = new Stack<TileScript>();  //checked tiles
+        Stack<TileScript> tileprevious = new Stack<TileScript>();  //the previous tile checked
         tilesToCheck.Clear();
-        tilesChecked.Clear();
+        tileprevious.Clear();
         TileScript currentTile = currentCard.GetComponent<TileScript>();
-        tilesToCheck.Push(currentTile); //start by pushing the current tile onto the stack
+        List<TileScript.Direction> edges = new List<TileScript.Direction> { };
 
-        while (tilesToCheck.Count > 0 )
+        tilesToCheck.Push(currentTile); //start by pushing the current tile onto the stack
+        int safety = 0;
+
+        while (tilesToCheck.Count > 0 && !roadEndFound && safety < 10)
         {
 
-            currentTile = tilesToCheck.Pop(); //get the next tile off the stack
-            Point currentPoint = currentTile.GridPosition;
-            if (!tilesChecked.Contains(currentTile))
-            {
-
-                List<TileScript.Direction> edges = currentTile.hasRoadEdges(); //check the next one on the stack
-                roadEdges = edges.Count;  //get current tile's road edges
-
-                if (roadEdges == 1)
+            safety++;  //prevent infinite loop
+            currentTile = tilesToCheck.Pop(); // get the next tile to check
+            
+            if (!tileprevious.Contains(currentTile)) //make sure we don't ping pong between two tiles
                 {
-                    //we have found the start of a single road path
-                    //now test the whole road path
-
-                    roadScore = checkPath(currentCard, edges[0]);
-                    if (roadScore > 0)
-                    {
-                        roadEndFound = true; //success
-                        Debug.Log("Complete Road found " + currentTile + "@" + currentPoint.x + "," + currentPoint.y + " SCORE :" + roadScore);
-                    }
-                }
-                else if (roadEdges == 2)
+                edges = currentTile.hasRoadEdges();  //find the number of road edges on the current tile
+                currentPoint = currentTile.GridPosition;
+                //have we found start yet
+                if (roadStartFound)
                 {
-                    //we are somewhere in the middle
-                    //search both ways
-
-                    roadScore = checkPath(currentCard, edges[0]);
-                    if (roadScore > 0)
+                    //if current tile has 1,3 or 4 road edges we have an end
+                    if(edges.Count() == 1 || edges.Count() >= 3)
                     {
- 
-                        int tmp = checkPath(currentCard, edges[1]);
-                        if (tmp > 0)
-                        {
-                            roadScore += tmp - 1; //subtract 1 becasue starting point is checked twice
-                            roadEndFound = true;
-                        Debug.Log("Complete Road found " + currentTile + "@" + currentPoint.x + "," + currentPoint.y+" SCORE :" + roadScore);
-                        }
-                        else
-                        {
-                            roadScore = 0;
-                            roadEndFound = false;
-                        }
+                        roadEndFound = true;
+                        endPoint = currentPoint;
+                        Debug.Log("Road frounf from :"+startPoint.x+","+startPoint.y+" to "+endPoint.x+","+endPoint.y);
                     }
-
                 }
                 else
                 {
-                    //we are at a three way junction
-                    //search in each direction
+                    //if current tile has 1,3 or 4 road edges we have a start 
+                    if (edges.Count() == 1 || edges.Count() >= 3)
+                    {
+                        roadStartFound = true;
+                        startPoint = currentPoint;
+                        tileprevious.Clear(); //clear out the checked list
+                        tilesToCheck.Push(currentTile); //and push the current tile back onto the stack
+                        //Debug.Log("Road Start found @ " + currentPoint.x + "," + currentPoint.y);
+                    }
                 }
+                {
+                    //keep looking
 
+                    if (edges.Count() == 1)
+                    {
+                        if (hasNeighbour(currentTile, edges[0]))
+                        {
+                            tilesToCheck.Push(hasNeighbour(currentTile, edges[0]));
+                        }
+                    }
+                    if (edges.Count() == 2)
+                    {
 
+                        if (hasNeighbour(currentTile, edges[1]))
+                        {
+                            tilesToCheck.Push(hasNeighbour(currentTile, edges[1]));
+                        }
+                    }
+                    if (edges.Count() == 3)
+                    {
+                        if (hasNeighbour(currentTile, edges[2]))
+                        {
+                            tilesToCheck.Push(hasNeighbour(currentTile, edges[2]));   
+                        }         
+                    }
+                    if (edges.Count() == 4)
+                    {
+
+                        if (hasNeighbour(currentTile, edges[3]))
+                        {
+                            tilesToCheck.Push(hasNeighbour(currentTile, edges[3]));
+                        }
+
+                    }
+                }
             }
+            //tileprevious.Clear(); //just keep the immediately previous tile
+            tileprevious.Push(currentTile);
         }
-            //all done
-
-            if (roadEndFound)
-            {
-                Debug.Log("Score :" + roadScore);
-                Debug.Log("=====");
-                return roadScore;
-            }
-            else
-            {
-                Debug.Log("=====");
-                return 0;
-            }
-        
-    
-             
-
+        return 0; //return nothing for now
     }
-
-    public int checkPath(GameObject currentCard , TileScript.Direction direction)
+ 
+    TileScript hasNeighbour(TileScript currentTile, TileScript.Direction edge)
     {
-        //returns number of steps found until road end of 0 if not found.
-        //initally searches in the direction specified
+        //returns reference to neighbouring tile on edge OR null
 
-        int roadScore = 0;
-        int roadEdges;
-
-        bool roadStartFound = true;
-        bool roadEndFound = false;
-        bool firstPass = true; //flag set on first pass - check tile in one direction only
-
-        Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
-        Stack<TileScript> tilesChecked = new Stack<TileScript>();  //checked tiles
-        List<TileScript.Direction> edges = new List<TileScript.Direction>{};
-        tilesToCheck.Clear();
-        tilesChecked.Clear();
-        TileScript currentTile = currentCard.GetComponent<TileScript>();
-        tilesToCheck.Push(currentTile); //start by pushing the current tile onto the stack
-
-        while (tilesToCheck.Count > 0 && !roadEndFound)
-        {
-            
-            currentTile = tilesToCheck.Pop(); //get the next tile off the stack
-            Point currentPoint = currentTile.GridPosition;
-            if (!tilesChecked.Contains(currentTile))
+        Point currentPoint = currentTile.GridPosition;
+ 
+            if (edge == TileScript.Direction.North && nodes.ContainsKey(currentPoint.northNeighbour))
             {
-
-                edges.Clear();
-                edges = currentTile.hasRoadEdges(); //check the next one on the stack
-                roadEdges = edges.Count;  //get current tile's road edges
-
-                
-
-                Debug.Log(" Checking "+currentTile.name+" @"+currentPoint.x+","+currentPoint.y+" in direction "+edges[0]);
-
-
-                if (roadEdges == 1 || roadEdges >= 3) //must be start or end of road
-                {
-                    roadScore++;
-                    Debug.Log("Road end found" + currentTile + "@" + currentPoint.x + "," + currentPoint.y + " :" + roadEdges);
-                    roadEndFound = true; //we have found one end the road
-
-                }
-                else if (roadEdges == 2)
-                {
-                    // Debug.Log("Road section found" + currentTile.name);
-                    roadScore++;
-                }
-                //find neighbours on each road edge
-
-                if (firstPass)
-                {
-                    //reset edges to specfied direction only
-                    edges.Clear();
-                    edges.Add(direction);
-                    firstPass = false;
-                }
-
-                for (int i = 0; i < edges.Count(); i++)
-                {
-                    if (edges[i] == TileScript.Direction.North && nodes.ContainsKey(currentPoint.northNeighbour))
-                    {
-                        tilesToCheck.Push(nodes[currentPoint.northNeighbour].TileRef.GetComponent<TileScript>());
-                    }
-                    else if (edges[i] == TileScript.Direction.East && nodes.ContainsKey(currentPoint.eastNeighbour))
-                    {
-                        tilesToCheck.Push(nodes[currentPoint.eastNeighbour].TileRef.GetComponent<TileScript>());
-                    }
-                    else if (edges[i] == TileScript.Direction.South && nodes.ContainsKey(currentPoint.southNeighbour))
-                    {
-                        tilesToCheck.Push(nodes[currentPoint.southNeighbour].TileRef.GetComponent<TileScript>());
-                    }
-                    else if (edges[i] == TileScript.Direction.West && nodes.ContainsKey(currentPoint.westNeighbour))
-                    {
-                        tilesToCheck.Push(nodes[currentPoint.westNeighbour].TileRef.GetComponent<TileScript>());
-                    }
-                }
-
-                tilesChecked.Push(currentTile);  //make sure we don't check it again
-
+                return nodes[currentPoint.northNeighbour].TileRef.GetComponent<TileScript>();
             }
-            else
+            else if (edge == TileScript.Direction.East && nodes.ContainsKey(currentPoint.eastNeighbour))
             {
-                if (tilesToCheck.Count > 0)
-                {
-                    tilesChecked.Push(tilesToCheck.Pop());
-                }
+                return nodes[currentPoint.eastNeighbour].TileRef.GetComponent<TileScript>();
             }
-
-        }
-        //all done
-
-        if (roadEndFound)
-        {
-            Debug.Log("Score :" + roadScore);
-            Debug.Log("=====");
-            return roadScore;
-        }
+            else if (edge == TileScript.Direction.South && nodes.ContainsKey(currentPoint.southNeighbour))
+            {
+                return nodes[currentPoint.southNeighbour].TileRef.GetComponent<TileScript>();
+            }
+             else if (edge == TileScript.Direction.West && nodes.ContainsKey(currentPoint.westNeighbour))
+            {
+                return nodes[currentPoint.westNeighbour].TileRef.GetComponent<TileScript>();
+            }
         else
         {
-            Debug.Log("=====");
-            return 0;
+        return null;
         }
-    }
+
 
     }
+    }
+
+
+
+     
+
+
+
 
 
 
