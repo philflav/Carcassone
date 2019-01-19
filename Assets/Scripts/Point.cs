@@ -23,7 +23,7 @@ public struct Point
 
 
 
-    /* temporarily removed to suppress warnings
+
     //implements boolean equality comparisons for Points
 
     public static bool operator ==(Point A, Point B)
@@ -39,7 +39,7 @@ public struct Point
     {
         return new Point(A.x - B.x, A.y - B.y);
     }
-    */
+    
 
 
 }

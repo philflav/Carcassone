@@ -419,14 +419,9 @@ public class BoardManager : Singleton<BoardManager>
     //
     //Now using road start follow path to the end of a road inclementing the score as we go.
     {
-        int roadScore = 0;
-        int roadEdges = 0;
-        bool roadEndFound = false;
-        bool roadStartFound = false;
-
         Point currentPoint = new Point();
-        Point startPoint = new Point();
-        Point endPoint = new Point();
+
+        int roadScore = 0;
 
         Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
         Stack<TileScript> tileprevious = new Stack<TileScript>();  //the previous tile checked
@@ -435,114 +430,174 @@ public class BoardManager : Singleton<BoardManager>
         TileScript currentTile = currentCard.GetComponent<TileScript>();
         List<TileScript.Direction> edges = new List<TileScript.Direction> { };
 
-        tilesToCheck.Push(currentTile); //start by pushing the current tile onto the stack
-        int safety = 0;
 
-        while (tilesToCheck.Count > 0 && !roadEndFound && safety < 10)
+        edges = currentTile.hasRoadEdges();  //find the number of road edges on the current tile
+        currentPoint = currentTile.GridPosition;
+
+        //check each road edge found for complete road
+
+        if (edges.Count() == 1)
         {
-
-            safety++;  //prevent infinite loop
-            currentTile = tilesToCheck.Pop(); // get the next tile to check
-            
-            if (!tileprevious.Contains(currentTile)) //make sure we don't ping pong between two tiles
+            Debug.Log("1 road edge");
+            roadScore=isCompleteRoad(currentTile, edges[0]);
+        }
+        if (edges.Count() ==2)
+        {
+            Debug.Log("2 road edge .... need to follow to the end to start complede road check");
+            roadScore=isCompleteRoad(currentTile, edges[0]);
+            if (roadScore > 0)
+            {
+                int tmp = isCompleteRoad(currentTile, edges[1]);
+               if (tmp > 0)
+                    //if 2 road ends found
                 {
-                edges = currentTile.hasRoadEdges();  //find the number of road edges on the current tile
-                currentPoint = currentTile.GridPosition;
-                //have we found start yet
-                if (roadStartFound)
-                {
-                    //if current tile has 1,3 or 4 road edges we have an end
-                    if(edges.Count() == 1 || edges.Count() >= 3)
-                    {
-                        roadEndFound = true;
-                        endPoint = currentPoint;
-                        Debug.Log("Road frounf from :"+startPoint.x+","+startPoint.y+" to "+endPoint.x+","+endPoint.y);
-                    }
+                    roadScore += tmp -1 ;//subtract 1 becasue we start checking from the same tile twice
                 }
                 else
                 {
-                    //if current tile has 1,3 or 4 road edges we have a start 
-                    if (edges.Count() == 1 || edges.Count() >= 3)
-                    {
-                        roadStartFound = true;
-                        startPoint = currentPoint;
-                        tileprevious.Clear(); //clear out the checked list
-                        tilesToCheck.Push(currentTile); //and push the current tile back onto the stack
-                        //Debug.Log("Road Start found @ " + currentPoint.x + "," + currentPoint.y);
-                    }
-                }
-                {
-                    //keep looking
-
-                    if (edges.Count() == 1)
-                    {
-                        if (hasNeighbour(currentTile, edges[0]))
-                        {
-                            tilesToCheck.Push(hasNeighbour(currentTile, edges[0]));
-                        }
-                    }
-                    if (edges.Count() == 2)
-                    {
-
-                        if (hasNeighbour(currentTile, edges[1]))
-                        {
-                            tilesToCheck.Push(hasNeighbour(currentTile, edges[1]));
-                        }
-                    }
-                    if (edges.Count() == 3)
-                    {
-                        if (hasNeighbour(currentTile, edges[2]))
-                        {
-                            tilesToCheck.Push(hasNeighbour(currentTile, edges[2]));   
-                        }         
-                    }
-                    if (edges.Count() == 4)
-                    {
-
-                        if (hasNeighbour(currentTile, edges[3]))
-                        {
-                            tilesToCheck.Push(hasNeighbour(currentTile, edges[3]));
-                        }
-
-                    }
+                    roadScore = 0;
                 }
             }
-            //tileprevious.Clear(); //just keep the immediately previous tile
-            tileprevious.Push(currentTile);
+
         }
-        return 0; //return nothing for now
+
+        if (edges.Count() == 3)
+        {
+            Debug.Log("3 road edges");
+            roadScore = isCompleteRoad(currentTile, edges[0]);
+            roadScore += isCompleteRoad(currentTile, edges[1]);
+            roadScore += isCompleteRoad(currentTile, edges[2]);
+        }
+        if (edges.Count() == 4)
+        {
+            Debug.Log("4 road edges");
+
+            roadScore = isCompleteRoad(currentTile, edges[0]);
+            roadScore += isCompleteRoad(currentTile, edges[1]);
+            roadScore += isCompleteRoad(currentTile, edges[2]);
+            roadScore += isCompleteRoad(currentTile, edges[3]);
+
+        }
+
+        //not a road start tile
+        if(roadScore >0)Debug.Log("roadScore " + roadScore);
+        return roadScore;
+
+
     }
- 
-    TileScript hasNeighbour(TileScript currentTile, TileScript.Direction edge)
+
+    TileScript hasRoadNeighbour(TileScript currentTile, TileScript.Direction edge)
     {
         //returns reference to neighbouring tile on edge OR null
 
         Point currentPoint = currentTile.GridPosition;
- 
-            if (edge == TileScript.Direction.North && nodes.ContainsKey(currentPoint.northNeighbour))
-            {
-                return nodes[currentPoint.northNeighbour].TileRef.GetComponent<TileScript>();
-            }
-            else if (edge == TileScript.Direction.East && nodes.ContainsKey(currentPoint.eastNeighbour))
-            {
-                return nodes[currentPoint.eastNeighbour].TileRef.GetComponent<TileScript>();
-            }
-            else if (edge == TileScript.Direction.South && nodes.ContainsKey(currentPoint.southNeighbour))
-            {
-                return nodes[currentPoint.southNeighbour].TileRef.GetComponent<TileScript>();
-            }
-             else if (edge == TileScript.Direction.West && nodes.ContainsKey(currentPoint.westNeighbour))
-            {
-                return nodes[currentPoint.westNeighbour].TileRef.GetComponent<TileScript>();
-            }
+
+        if (edge == TileScript.Direction.North && nodes.ContainsKey(currentPoint.northNeighbour))
+        {
+            return nodes[currentPoint.northNeighbour].TileRef.GetComponent<TileScript>();
+        }
+        else if (edge == TileScript.Direction.East && nodes.ContainsKey(currentPoint.eastNeighbour))
+        {
+            return nodes[currentPoint.eastNeighbour].TileRef.GetComponent<TileScript>();
+        }
+        else if (edge == TileScript.Direction.South && nodes.ContainsKey(currentPoint.southNeighbour))
+        {
+            return nodes[currentPoint.southNeighbour].TileRef.GetComponent<TileScript>();
+        }
+        else if (edge == TileScript.Direction.West && nodes.ContainsKey(currentPoint.westNeighbour))
+        {
+            return nodes[currentPoint.westNeighbour].TileRef.GetComponent<TileScript>();
+        }
         else
         {
-        return null;
+            return null;
         }
+    }
+    int isCompleteRoad(TileScript startTile, TileScript.Direction edge)
+    {
+        //returns score for a complete road starting from currentTile on edge
+        //retruns - score of incomplete road segments.
+
+ 
+        bool roadEndFound = false;
 
 
+
+        Point currentPoint = new Point();
+        Point startPoint = new Point();
+        Point endPoint = new Point();
+
+        Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
+        Stack<TileScript> tileprevious = new Stack<TileScript>();  //the previous tile checked
+        List<TileScript.Direction> edges = new List<TileScript.Direction> { };
+        tilesToCheck.Clear();
+        tileprevious.Clear();
+        TileScript tmp, currentTile;
+
+        int safety = 0;
+        int roadScore = 1;
+  
+
+        startPoint = startTile.GridPosition;
+        tmp = hasRoadNeighbour(startTile, edge);  //is there a neighbour on the edge
+        if (tmp)
+        {
+            tilesToCheck.Push(tmp); //push neigbour onto stack
+        }
+        tileprevious.Push(startTile); //mark startTile as checked
+
+        Debug.Log(">>>Checking " + startTile + "from " + startPoint.x + "," + startPoint.y+" in direction "+edge);
+
+        while (tilesToCheck.Count > 0 && !roadEndFound && safety < 10)
+        {
+            safety++;  //prevent infinite loop
+            currentTile = tilesToCheck.Pop();
+            if (!tileprevious.Contains(currentTile))
+            {
+
+                roadScore++;
+                edges = currentTile.hasRoadEdges();  //road edges on the current tile
+                currentPoint = currentTile.GridPosition;
+                //Debug.Log(safety+"Next tile " + currentTile + " " + edges[0]+" "+edges[1]);
+                if (edges.Count() == 1 || edges.Count() >= 3)
+                {
+                    endPoint = currentPoint;
+                    roadEndFound = true;
+                    if (!(startPoint == endPoint))
+                    {
+                        Debug.Log(">>>>Road found from :" + startPoint.x + "," + startPoint.y + " to " + endPoint.x + "," + endPoint.y);
+                        return roadScore;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+                else if (edges.Count() == 2)
+                {
+                    tmp = hasRoadNeighbour(currentTile, edges[0]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp);
+                        Debug.Log("Neighbour" + edges[0]);
+                    }
+                    tmp = hasRoadNeighbour(currentTile, edges[1]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp);
+                        Debug.Log("Neighbour" + edges[1]);
+                    } 
+                }
+                tileprevious.Push(currentTile);
+
+            }
+        }
+            return 0;
     }
-    }
+}
+
+    
+    
 
 
 
