@@ -202,6 +202,18 @@ public class TileScript : MonoBehaviour
         return edges;
     }
 
+    public bool HasCityCentre()
+    {
+        if(this.C == Structure.City|| this.C == Structure.Shield)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
    
     public bool IsMonastry()
     {
