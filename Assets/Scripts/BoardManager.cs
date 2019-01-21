@@ -65,7 +65,7 @@ public class BoardManager : Singleton<BoardManager>
     {
         UnityEngine.Random.seed = randomSeed; //Uncomment here to create a repeatable map
 
-        CardManager cardManager = new CardManager();
+        CardManager cardManager = gameObject.AddComponent(typeof(CardManager)) as CardManager;
 
         cardStack = cardManager.MakeStack(gameTilePrefab);
 
@@ -438,12 +438,12 @@ public class BoardManager : Singleton<BoardManager>
 
         if (edges.Count() == 1)
         {
-            Debug.Log("1 road edge");
+           //Debug.Log("1 road edge");
             roadScore=isCompleteRoad(currentTile, edges[0]);
         }
         if (edges.Count() ==2)
         {
-            Debug.Log("2 road edge .... need to follow to the end to start complede road check");
+           // Debug.Log("2 road edge .... need to follow to the end to start complete road check");
             roadScore=isCompleteRoad(currentTile, edges[0]);
             if (roadScore > 0)
             {
@@ -463,14 +463,14 @@ public class BoardManager : Singleton<BoardManager>
 
         if (edges.Count() == 3)
         {
-            Debug.Log("3 road edges");
+           // Debug.Log("3 road edges");
             roadScore = isCompleteRoad(currentTile, edges[0]);
             roadScore += isCompleteRoad(currentTile, edges[1]);
             roadScore += isCompleteRoad(currentTile, edges[2]);
         }
         if (edges.Count() == 4)
         {
-            Debug.Log("4 road edges");
+           // Debug.Log("4 road edges");
 
             roadScore = isCompleteRoad(currentTile, edges[0]);
             roadScore += isCompleteRoad(currentTile, edges[1]);
@@ -516,7 +516,7 @@ public class BoardManager : Singleton<BoardManager>
     int isCompleteRoad(TileScript startTile, TileScript.Direction edge)
     {
         //returns score for a complete road starting from currentTile on edge
-        //retruns - score of incomplete road segments.
+        //retruns zero score for incomplete road segments.
 
  
         bool roadEndFound = false;
@@ -546,7 +546,7 @@ public class BoardManager : Singleton<BoardManager>
         }
         tileprevious.Push(startTile); //mark startTile as checked
 
-        Debug.Log(">>>Checking " + startTile + "from " + startPoint.x + "," + startPoint.y+" in direction "+edge);
+        //Debug.Log(">>>Checking " + startTile + "from " + startPoint.x + "," + startPoint.y+" in direction "+edge);
 
         while (tilesToCheck.Count > 0 && !roadEndFound && safety < 10)
         {
@@ -579,13 +579,13 @@ public class BoardManager : Singleton<BoardManager>
                     if (tmp)
                     {
                         tilesToCheck.Push(tmp);
-                        Debug.Log("Neighbour" + edges[0]);
+                        //Debug.Log("Neighbour" + edges[0]);
                     }
                     tmp = hasRoadNeighbour(currentTile, edges[1]);
                     if (tmp)
                     {
                         tilesToCheck.Push(tmp);
-                        Debug.Log("Neighbour" + edges[1]);
+                        //Debug.Log("Neighbour" + edges[1]);
                     } 
                 }
                 tileprevious.Push(currentTile);
