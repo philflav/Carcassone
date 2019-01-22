@@ -85,10 +85,11 @@ public class BoardManager : Singleton<BoardManager>
     // Update is called once per frame
     void Update()
     {
-        if (Input.anyKeyDown)
+        if (Input.anyKey) TakeATurn();
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             TakeATurn();
-        }
+        }       
     }
 
     public void TakeATurn()
@@ -397,12 +398,16 @@ public class BoardManager : Singleton<BoardManager>
 
         //Debug.Log("Scoring :" + currentCard.name);
 
+        int total_score = roadComplete(currentCard) + cityComplete(currentCard);
 
+        return total_score;
         //Check for Completed Road
 
-        return roadComplete(currentCard);
+        //return roadComplete(currentCard);
 
         //Check for completed city
+
+       // return cityComplete(currentCard);
 
         //Check for completed monastry 
 
@@ -411,6 +416,7 @@ public class BoardManager : Singleton<BoardManager>
     }
 
     public int roadComplete(GameObject currentCard)
+    {
 
     //check if current card completes a road and return score if its incomnplete retrun -score
     //This assumes current card is one claimed by a Meeple and therefor only one road is to be examined
@@ -418,15 +424,14 @@ public class BoardManager : Singleton<BoardManager>
     //First follow path to the start of road
     //
     //Now using road start follow path to the end of a road inclementing the score as we go.
-    {
         Point currentPoint = new Point();
 
         int roadScore = 0;
 
-        Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
-        Stack<TileScript> tileprevious = new Stack<TileScript>();  //the previous tile checked
-        tilesToCheck.Clear();
-        tileprevious.Clear();
+      //  Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
+     //   Stack<TileScript> tileprevious = new Stack<TileScript>();  //the previous tile checked
+     //   tilesToCheck.Clear();
+      //  tileprevious.Clear();
         TileScript currentTile = currentCard.GetComponent<TileScript>();
         List<TileScript.Direction> edges = new List<TileScript.Direction> { };
 
@@ -480,13 +485,13 @@ public class BoardManager : Singleton<BoardManager>
         }
 
         //not a road start tile
-        if(roadScore >0)Debug.Log("roadScore " + roadScore);
+        if(roadScore >0)Debug.Log("RoadScore " + roadScore);
         return roadScore;
 
 
     }
 
-    TileScript hasRoadNeighbour(TileScript currentTile, TileScript.Direction edge)
+    TileScript hasNeighbour(TileScript currentTile, TileScript.Direction edge)
     {
         //returns reference to neighbouring tile on edge OR null
 
@@ -539,7 +544,7 @@ public class BoardManager : Singleton<BoardManager>
   
 
         startPoint = startTile.GridPosition;
-        tmp = hasRoadNeighbour(startTile, edge);  //is there a neighbour on the edge
+        tmp = hasNeighbour(startTile, edge);  //is there a neighbour on the edge
         if (tmp)
         {
             tilesToCheck.Push(tmp); //push neigbour onto stack
@@ -565,7 +570,7 @@ public class BoardManager : Singleton<BoardManager>
                     roadEndFound = true;
                     if (!(startPoint == endPoint))
                     {
-                        Debug.Log(">>>>Road found from :" + startPoint.x + "," + startPoint.y + " to " + endPoint.x + "," + endPoint.y);
+                        //Debug.Log(">>>>Road found from :" + startPoint.x + "," + startPoint.y + " to " + endPoint.x + "," + endPoint.y);
                         return roadScore;
                     }
                     else
@@ -575,13 +580,13 @@ public class BoardManager : Singleton<BoardManager>
                 }
                 else if (edges.Count() == 2)
                 {
-                    tmp = hasRoadNeighbour(currentTile, edges[0]);
+                    tmp = hasNeighbour(currentTile, edges[0]);
                     if (tmp)
                     {
                         tilesToCheck.Push(tmp);
                         //Debug.Log("Neighbour" + edges[0]);
                     }
-                    tmp = hasRoadNeighbour(currentTile, edges[1]);
+                    tmp = hasNeighbour(currentTile, edges[1]);
                     if (tmp)
                     {
                         tilesToCheck.Push(tmp);
@@ -594,8 +599,255 @@ public class BoardManager : Singleton<BoardManager>
         }
             return 0;
     }
+
+    public  int cityComplete(GameObject currentCard)
+    {
+        //does the current card complete one or more cities. If so return the city score(s) or -score for incomplete cities.
+        Point currentPoint = new Point();
+
+        int cityScore = 0;
+ 
+        int tmp = 0;
+
+        TileScript currentTile = currentCard.GetComponent<TileScript>();
+        List<TileScript.Direction> edges = new List<TileScript.Direction> { };
+
+        edges = currentTile.hasCityEdges();  //find the number of city edges on the current tile
+        currentPoint = currentTile.GridPosition;
+
+        if(edges.Count() == 1)
+        {
+            cityScore = isCompletedCity(currentTile, edges[0]); //does this tile complete a city
+        }
+        if(edges.Count() == 2 && !currentTile.HasCityCentre())
+        {
+            //Debug.Log("Here "+currentTile);
+            //explore both edges for 2 completed cities
+           // Debug.Log(currentTile + " does not have connected city edges");
+            cityScore = isCompletedCity(currentTile, edges[0]); //does this tile complete a city
+            //Debug.Log("City score " + cityScore);
+            cityScore = isCompletedCity(currentTile, edges[1]); //does this tile complete a city
+            //Debug.Log("City score " + cityScore);
+        }
+        if(edges.Count() == 2 && currentTile.HasCityCentre())
+        {
+            //explore both edges for 1 completed city
+            cityScore = isCompletedCity(currentTile, edges[0]); //just test the first edge
+        }
+        if(edges.Count() == 3)
+        {
+            //explore all edges for 1 completed city
+            tmp = isCompletedCity(currentTile, edges[0]); //does this tile complete a city
+            if (tmp > 0)
+            {
+                cityScore = tmp;
+                tmp = isCompletedCity(currentTile, edges[1]); //does this tile complete a city
+                if (tmp > 0)
+                {
+                    cityScore += tmp;
+                    tmp = isCompletedCity(currentTile, edges[2]); //does this tile complete a city
+                    if (tmp > 0)
+                    {
+                        cityScore += tmp;
+                    }
+                    else
+                    {
+                        cityScore = 0;
+                    }
+                }
+                else
+                {
+                    cityScore = 0;
+                }
+            }
+        }
+        if (edges.Count() == 4)
+        {
+            //explore all edges for 1 completed city
+            tmp = isCompletedCity(currentTile, edges[0]); //does this tile complete a citysegment
+            if (tmp > 0)
+            {
+                cityScore = tmp;
+                tmp = isCompletedCity(currentTile, edges[1]); //does this tile complete a citysegment
+                if (tmp > 0)
+                {
+                    cityScore += tmp;
+                    tmp = isCompletedCity(currentTile, edges[2]); //does this tile complete a citysegment
+                    if (tmp > 0)
+                    {
+                        cityScore += tmp;
+                        tmp = isCompletedCity(currentTile, edges[3]); //does this tile complete the citysegment
+                        if (tmp > 0)
+                        {
+                            cityScore += tmp;
+                        }
+                        else cityScore = 0;
+                    }
+                    else
+                    {
+                        cityScore = 0;
+                    }
+                }
+                else
+                {
+                    cityScore = 0;
+                }
+            }
+        }
+        
+
+    
+
+        return cityScore;
+    }
+
+    public int isCompletedCity(TileScript startTile, TileScript.Direction edge)
+    {
+
+        //returns score for a completed city segment starting from the startTile.
+        //Assumes the start tile is itself closed when calculating open or closed segments.
+
+
+
+        Point currentPoint = new Point();
+        Point startPoint = new Point();
+        Point endPoint = new Point();
+
+        Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
+        Stack<TileScript> tileprevious = new Stack<TileScript>();  //the previous tile checked
+        List<TileScript.Direction> edges = new List<TileScript.Direction> { };
+        tilesToCheck.Clear();
+        tileprevious.Clear();
+        TileScript tmp, currentTile;
+
+        int safety = 0;
+        int cityScore = 0;
+        int T = 0; //closed edge counter
+        int S = 0; //open edge counter
+
+        tilesToCheck.Push(startTile);
+        tmp = hasNeighbour(startTile, edge);  //is there a neighbour on the edge    
+        if (tmp)
+        {
+            tilesToCheck.Push(tmp); //push neigbour onto stack
+ 
+        }
+        //tileprevious.Push(startTile); //mark startTile as checked
+
+        while (tilesToCheck.Count > 0 && safety < 10)
+        {
+            safety++;  //prevent infinite loop
+            currentTile = tilesToCheck.Pop(); //get the next tile to check
+            if (!tileprevious.Contains(currentTile))
+            {
+
+                edges = currentTile.hasCityEdges();  //city edges on the current tile
+
+               // Debug.Log(safety+"Checking :"+currentTile);
+
+                currentPoint = currentTile.GridPosition;
+                if (edges.Count() == 1)
+                {
+                    cityScore++;
+                    T++; //closing edge
+                    tmp = hasNeighbour(currentTile, edges[0]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp); //push neigbour onto stack
+                    }
+                }
+                else if (edges.Count() == 2)
+                {
+                    //if edges are not connected increment T
+                    cityScore++;
+                    if (!currentTile.HasCityCentre())
+                    {
+                        //Debug.Log(currentTile + " does not have connected city edges");
+                        T++;
+                    }
+                    else
+                    {
+                        //Debug.Log(currentTile + "has connected city edges");
+                        tmp = hasNeighbour(currentTile, edges[0]);
+                        if (tmp)
+                        {
+                            tilesToCheck.Push(tmp); //push neigbour onto stack
+                        }
+                        tmp = hasNeighbour(currentTile, edges[1]);
+                        if (tmp)
+                        {
+                            tilesToCheck.Push(tmp); //push neigbour onto stack
+                        }
+
+                    }
+                }
+                else if (edges.Count() == 3)
+                {
+                    cityScore++;
+                    S++; //add a split
+                    tmp = hasNeighbour(currentTile, edges[0]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp); //push neigbour onto stack
+                    }
+                    tmp = hasNeighbour(currentTile, edges[1]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp); //push neigbour onto stack
+                    }
+                    tmp = hasNeighbour(currentTile, edges[2]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp); //push neigbour onto stack
+                    }
+
+                }
+                else if (edges.Count() == 4)
+                {
+                    cityScore++;
+                    S += 2; //add 2 splits
+                    tmp = hasNeighbour(currentTile, edges[0]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp); //push neigbour onto stack
+                    }
+                    tmp = hasNeighbour(currentTile, edges[1]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp); //push neigbour onto stack
+                    }
+                    tmp = hasNeighbour(currentTile, edges[2]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp); //push neigbour onto stack
+                    }
+                    tmp = hasNeighbour(currentTile, edges[3]);
+                    if (tmp)
+                    {
+                        tilesToCheck.Push(tmp); //push neigbour onto stack
+                    }
+
+                }
+                 tileprevious.Push(currentTile); //make sure we don't check it again
+            }
+        }
+        if (T-2 == S)
+        {
+            //We found a complete segment
+
+            Debug.Log("Completed City @ " + currentPoint.x + "," + currentPoint.y + " T:" + T + " S:" + S + " CityScore:" + cityScore);
+         
+            return cityScore;
+        }
+        else
+        {
+            return 0;
+        }
+    }
 }
 
+
+   
     
     
 

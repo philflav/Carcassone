@@ -194,13 +194,15 @@ public class TileScript : MonoBehaviour
     {
         List<Direction> edges = new List<Direction>();
 
-        if (this.Up() == Structure.City) edges.Add(Direction.North);
-        if (this.Right() == Structure.City) edges.Add(Direction.East);
-        if (this.Left() == Structure.City) edges.Add(Direction.West);
-        if (this.Down() == Structure.City) edges.Add(Direction.South);
+        if (this.Up() == Structure.City || this.Up() == Structure.Shield) edges.Add(Direction.North);
+        if (this.Right() == Structure.City || this.Right() == Structure.Shield) edges.Add(Direction.East);
+        if (this.Left() == Structure.City || this.Left() == Structure.Shield) edges.Add(Direction.West);
+        if (this.Down() == Structure.City || this.Down() == Structure.Shield) edges.Add(Direction.South);
 
         return edges;
     }
+     
+
 
     public bool HasCityCentre()
     {
