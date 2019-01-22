@@ -395,6 +395,7 @@ public class BoardManager : Singleton<BoardManager>
 
     public int inPlayScore(GameObject currentCard)
     {
+
         //ToDo  City with Shield
         //ToDo  Partial scores for end game
         //ToDo  Assign score to claims (Meeples)
