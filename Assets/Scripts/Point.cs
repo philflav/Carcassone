@@ -20,6 +20,11 @@ public struct Point
     public Point eastNeighbour { get => new Point(x + 1, y); }
     public Point northNeighbour { get => new Point(x, y+1); }
     public Point southNeighbour { get => new Point(x, y-1); }
+    public Point northwestNeighbour { get => new Point(x - 1, y + 1); }
+    public Point southwestNeighbour { get => new Point(x - 1, y - 1); }
+    public Point northeastNeighbour { get => new Point(x + 1, y + 1); }
+    public Point southeastNeighbour { get => new Point(x + 1, y - 1); }
+
 
 
 

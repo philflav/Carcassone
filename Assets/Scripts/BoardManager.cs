@@ -89,7 +89,7 @@ public class BoardManager : Singleton<BoardManager>
         if (Input.GetKeyDown(KeyCode.Space))
         {
             TakeATurn();
-        }       
+        }
     }
 
     public void TakeATurn()
@@ -396,18 +396,22 @@ public class BoardManager : Singleton<BoardManager>
     public int inPlayScore(GameObject currentCard)
     {
 
-        //Debug.Log("Scoring :" + currentCard.name);
+        //ToDo  City with Shield
+        //ToDo  Partial scores for end game
+        //ToDo  Assign score to claims (Meeples)
 
-        int total_score = roadComplete(currentCard) + cityComplete(currentCard);
+        int totalScore = roadComplete(currentCard) + cityComplete(currentCard) + monastryCompleted(currentCard);
 
-        return total_score;
+        Debug.Log("Total Score on turn "+totalScore);
+
+        return totalScore;
         //Check for Completed Road
 
         //return roadComplete(currentCard);
 
         //Check for completed city
 
-       // return cityComplete(currentCard);
+        // return cityComplete(currentCard);
 
         //Check for completed monastry 
 
@@ -418,20 +422,20 @@ public class BoardManager : Singleton<BoardManager>
     public int roadComplete(GameObject currentCard)
     {
 
-    //check if current card completes a road and return score if its incomnplete retrun -score
-    //This assumes current card is one claimed by a Meeple and therefor only one road is to be examined
+        //check if current card completes a road and return score if its incomnplete retrun -score
+        //This assumes current card is one claimed by a Meeple and therefor only one road is to be examined
 
-    //First follow path to the start of road
-    //
-    //Now using road start follow path to the end of a road inclementing the score as we go.
+        //First follow path to the start of road
+        //
+        //Now using road start follow path to the end of a road inclementing the score as we go.
         Point currentPoint = new Point();
 
         int roadScore = 0;
 
-      //  Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
-     //   Stack<TileScript> tileprevious = new Stack<TileScript>();  //the previous tile checked
-     //   tilesToCheck.Clear();
-      //  tileprevious.Clear();
+        //  Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
+        //   Stack<TileScript> tileprevious = new Stack<TileScript>();  //the previous tile checked
+        //   tilesToCheck.Clear();
+        //  tileprevious.Clear();
         TileScript currentTile = currentCard.GetComponent<TileScript>();
         List<TileScript.Direction> edges = new List<TileScript.Direction> { };
 
@@ -443,20 +447,20 @@ public class BoardManager : Singleton<BoardManager>
 
         if (edges.Count() == 1)
         {
-           //Debug.Log("1 road edge");
-            roadScore=isCompleteRoad(currentTile, edges[0]);
+            //Debug.Log("1 road edge");
+            roadScore = isCompleteRoad(currentTile, edges[0]);
         }
-        if (edges.Count() ==2)
+        if (edges.Count() == 2)
         {
-           // Debug.Log("2 road edge .... need to follow to the end to start complete road check");
-            roadScore=isCompleteRoad(currentTile, edges[0]);
+            // Debug.Log("2 road edge .... need to follow to the end to start complete road check");
+            roadScore = isCompleteRoad(currentTile, edges[0]);
             if (roadScore > 0)
             {
                 int tmp = isCompleteRoad(currentTile, edges[1]);
-               if (tmp > 0)
-                    //if 2 road ends found
+                if (tmp > 0)
+                //if 2 road ends found
                 {
-                    roadScore += tmp -1 ;//subtract 1 becasue we start checking from the same tile twice
+                    roadScore += tmp - 1;//subtract 1 becasue we start checking from the same tile twice
                 }
                 else
                 {
@@ -468,14 +472,14 @@ public class BoardManager : Singleton<BoardManager>
 
         if (edges.Count() == 3)
         {
-           // Debug.Log("3 road edges");
+            // Debug.Log("3 road edges");
             roadScore = isCompleteRoad(currentTile, edges[0]);
             roadScore += isCompleteRoad(currentTile, edges[1]);
             roadScore += isCompleteRoad(currentTile, edges[2]);
         }
         if (edges.Count() == 4)
         {
-           // Debug.Log("4 road edges");
+            // Debug.Log("4 road edges");
 
             roadScore = isCompleteRoad(currentTile, edges[0]);
             roadScore += isCompleteRoad(currentTile, edges[1]);
@@ -485,7 +489,7 @@ public class BoardManager : Singleton<BoardManager>
         }
 
         //not a road start tile
-        if(roadScore >0)Debug.Log("RoadScore " + roadScore);
+        if (roadScore > 0) Debug.Log("RoadScore " + roadScore);
         return roadScore;
 
 
@@ -523,7 +527,7 @@ public class BoardManager : Singleton<BoardManager>
         //returns score for a complete road starting from currentTile on edge
         //retruns zero score for incomplete road segments.
 
- 
+
         bool roadEndFound = false;
 
 
@@ -541,7 +545,7 @@ public class BoardManager : Singleton<BoardManager>
 
         int safety = 0;
         int roadScore = 1;
-  
+
 
         startPoint = startTile.GridPosition;
         tmp = hasNeighbour(startTile, edge);  //is there a neighbour on the edge
@@ -591,22 +595,22 @@ public class BoardManager : Singleton<BoardManager>
                     {
                         tilesToCheck.Push(tmp);
                         //Debug.Log("Neighbour" + edges[1]);
-                    } 
+                    }
                 }
                 tileprevious.Push(currentTile);
 
             }
         }
-            return 0;
+        return 0;
     }
 
-    public  int cityComplete(GameObject currentCard)
+    public int cityComplete(GameObject currentCard)
     {
         //does the current card complete one or more cities. If so return the city score(s) or -score for incomplete cities.
         Point currentPoint = new Point();
 
         int cityScore = 0;
- 
+
         int tmp = 0;
 
         TileScript currentTile = currentCard.GetComponent<TileScript>();
@@ -615,26 +619,26 @@ public class BoardManager : Singleton<BoardManager>
         edges = currentTile.hasCityEdges();  //find the number of city edges on the current tile
         currentPoint = currentTile.GridPosition;
 
-        if(edges.Count() == 1)
+        if (edges.Count() == 1)
         {
             cityScore = isCompletedCity(currentTile, edges[0]); //does this tile complete a city
         }
-        if(edges.Count() == 2 && !currentTile.HasCityCentre())
+        if (edges.Count() == 2 && !currentTile.HasCityCentre())
         {
             //Debug.Log("Here "+currentTile);
             //explore both edges for 2 completed cities
-           // Debug.Log(currentTile + " does not have connected city edges");
+            // Debug.Log(currentTile + " does not have connected city edges");
             cityScore = isCompletedCity(currentTile, edges[0]); //does this tile complete a city
             //Debug.Log("City score " + cityScore);
             cityScore = isCompletedCity(currentTile, edges[1]); //does this tile complete a city
             //Debug.Log("City score " + cityScore);
         }
-        if(edges.Count() == 2 && currentTile.HasCityCentre())
+        if (edges.Count() == 2 && currentTile.HasCityCentre())
         {
             //explore both edges for 1 completed city
             cityScore = isCompletedCity(currentTile, edges[0]); //just test the first edge
         }
-        if(edges.Count() == 3)
+        if (edges.Count() == 3)
         {
             //explore all edges for 1 completed city
             tmp = isCompletedCity(currentTile, edges[0]); //does this tile complete a city
@@ -694,9 +698,9 @@ public class BoardManager : Singleton<BoardManager>
                 }
             }
         }
-        
 
-    
+
+
 
         return cityScore;
     }
@@ -730,7 +734,7 @@ public class BoardManager : Singleton<BoardManager>
         if (tmp)
         {
             tilesToCheck.Push(tmp); //push neigbour onto stack
- 
+
         }
         //tileprevious.Push(startTile); //mark startTile as checked
 
@@ -743,7 +747,7 @@ public class BoardManager : Singleton<BoardManager>
 
                 edges = currentTile.hasCityEdges();  //city edges on the current tile
 
-               // Debug.Log(safety+"Checking :"+currentTile);
+                // Debug.Log(safety+"Checking :"+currentTile);
 
                 currentPoint = currentTile.GridPosition;
                 if (edges.Count() == 1)
@@ -828,16 +832,100 @@ public class BoardManager : Singleton<BoardManager>
                     }
 
                 }
-                 tileprevious.Push(currentTile); //make sure we don't check it again
+                tileprevious.Push(currentTile); //make sure we don't check it again
             }
         }
-        if (T-2 == S)
+        if (T - 2 == S)
         {
             //We found a complete segment
 
             Debug.Log("Completed City @ " + currentPoint.x + "," + currentPoint.y + " T:" + T + " S:" + S + " CityScore:" + cityScore);
-         
+
             return cityScore;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    public int monastryCompleted(GameObject currentCard)
+    {
+        //does the current tile complete a  monastry
+
+        TileScript currentTile = currentCard.GetComponent<TileScript>();
+        Node tmp;
+
+        int monastryScore = 0;
+
+        Point currentPoint = currentTile.GridPosition;
+
+        Stack<TileScript> tilesToCheck = new Stack<TileScript>();  //tiles to be checked
+
+        tilesToCheck.Push(currentTile);
+
+        if (nodes.TryGetValue(currentPoint.northNeighbour,out tmp))tilesToCheck.Push(tmp.TileRef);
+        if (nodes.TryGetValue(currentPoint.northeastNeighbour, out tmp)) tilesToCheck.Push(tmp.TileRef);
+        if (nodes.TryGetValue(currentPoint.eastNeighbour, out tmp)) tilesToCheck.Push(tmp.TileRef);
+        if (nodes.TryGetValue(currentPoint.southeastNeighbour, out tmp)) tilesToCheck.Push(tmp.TileRef);
+        if (nodes.TryGetValue(currentPoint.southNeighbour, out tmp)) tilesToCheck.Push(tmp.TileRef);
+        if (nodes.TryGetValue(currentPoint.southwestNeighbour, out tmp)) tilesToCheck.Push(tmp.TileRef);
+        if (nodes.TryGetValue(currentPoint.westNeighbour, out tmp)) tilesToCheck.Push(tmp.TileRef);
+        if (nodes.TryGetValue(currentPoint.northwestNeighbour, out tmp)) tilesToCheck.Push(tmp.TileRef);
+
+        while (tilesToCheck.Count() > 0)
+        {
+            currentTile = tilesToCheck.Pop();
+            monastryScore += CompletedMonastry(currentTile);
+        }
+        return monastryScore ;
+
+    }
+    public int CompletedMonastry(TileScript currentTile)
+    {
+        //if a tile is a completed monastry return 8 otherwise return 0
+
+        if (!currentTile.IsMonastry()) return 0;
+
+        Point currentPoint = currentTile.GridPosition;
+
+        int neighbours = 0;
+
+        if (nodes.ContainsKey(currentPoint.northNeighbour))
+        {
+            neighbours++;
+        }
+        if (nodes.ContainsKey(currentPoint.northeastNeighbour))
+        {
+            neighbours++;
+        }
+        if (nodes.ContainsKey(currentPoint.eastNeighbour))
+        {
+            neighbours++;
+        }
+        if (nodes.ContainsKey(currentPoint.southeastNeighbour))
+        {
+            neighbours++;
+        }
+        if (nodes.ContainsKey(currentPoint.southNeighbour))
+        {
+            neighbours++;
+        }
+        if (nodes.ContainsKey(currentPoint.southwestNeighbour))
+        {
+            neighbours++;
+        }
+        if (nodes.ContainsKey(currentPoint.westNeighbour))
+        {
+            neighbours++;
+        }
+        if (nodes.ContainsKey(currentPoint.northwestNeighbour))
+        {
+            neighbours++;
+        }
+        if (neighbours == 8)
+        {
+            Debug.Log("Completed Monastry @ " + currentPoint.x + "," + currentPoint.y);
+            return neighbours;
         }
         else
         {
