@@ -17,11 +17,11 @@ public class TileScript : MonoBehaviour
         }
     }
     public enum Structure { Road,  City, Field, Monastry, Shield, River, Village }; 
-    public enum Direction { North, South, East, West} //card directions
+    public enum Direction { North, East, South, West} //card directions
     [SerializeField]
     Structure N, E, S, W, C;  //edges and centre of tile 
 
-    public Direction placeDirection; //tile placement direction for Up
+    public Direction placeDirection { get; set; } //tile placement direction for Up
 
     [SerializeField]
     public int CardsInDeck = 1;

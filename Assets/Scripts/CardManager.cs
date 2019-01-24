@@ -27,7 +27,7 @@ public class CardManager : MonoBehaviour
         {
             //choose a random card
             int rnd = UnityEngine.Random.Range(0, numberOfCards);
-            GameObject newcard =  cards[rnd];            
+            GameObject newcard =  cards[rnd];
             //are there still any of this card available
             if (deckCount[rnd]>0)
             {
