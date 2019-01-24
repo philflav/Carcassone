@@ -39,7 +39,7 @@ public class Hover : Singleton<Hover>
     public void Activate(Sprite sprite)
     {
         this.spriteRenderer.sprite = sprite;
-        this.spriteRenderer.sortingOrder = 0;
+        this.spriteRenderer.sortingOrder = 1;
         this.spriteRenderer.enabled = true;
     }
     public void Rotate(Sprite sprite, int direction)

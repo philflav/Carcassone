@@ -81,7 +81,7 @@ public class BoardManager : Singleton<BoardManager>
 
         //Create available list
         HashSet<Point> availableList = new HashSet<Point>(); //a node list of avaialable spaces (Points)
-
+        availableList.Clear();
         //setup directions array;
         TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
 
@@ -102,19 +102,21 @@ public class BoardManager : Singleton<BoardManager>
             TakeATurn();
         }
         if (Input.GetMouseButtonDown(1))
-          {
+        {
             PlaceDirection++;
             if (PlaceDirection > 3) PlaceDirection = 0;
             nextTile.placeDirection = (TileScript.Direction)PlaceDirection;
             Hover.Instance.Rotate(nextSprite, PlaceDirection);
-            }
+        }
         if (Input.GetMouseButtonDown(0))
+            
         {
             nextPoint = new Point(Hover.Instance.gridX, Hover.Instance.gridY);
             Sprite nextSprite = nextCard.GetComponent<SpriteRenderer>().sprite;
-            //Check legal placement
-            if (CheckAvailableNodes(nextPoint))
+            //Check legal placement          
+            if (MarkAvailable(nextPoint))
             {
+                //Place an empty tile on each available node and colour it red or green
                 Debug.Log("Nodes Available");
                 if (CheckNeighbours(nextTile, nextPoint))
                 {
@@ -131,13 +133,58 @@ public class BoardManager : Singleton<BoardManager>
                 else
                 {
                     Debug.Log("Can't place here! - illegal placement");
-                }               
+                }
             }
             else
             {
                 Debug.Log("Can't place here! - not available");
             }
         }
+    }
+    public bool MarkAvailable(Point checkpoint)
+    {
+        Debug.Log("Marking Available Nodes");
+        HashSet<Point> availableList = new HashSet<Point>();
+        availableList.Clear();
+        //for each node in nodelist - check for empty neighbours and add them to available list
+
+        foreach (KeyValuePair<Point, Node> node in nodes)
+        {
+            if (!nodes.ContainsKey(node.Key.northNeighbour))
+            {
+                //no neigbour so add it to available list
+                availableList.Add(node.Key.northNeighbour);
+            }
+            if (!nodes.ContainsKey(node.Key.eastNeighbour))
+            {
+                //no neigbour so add it to available list
+                availableList.Add(node.Key.eastNeighbour);
+            }
+            if (!nodes.ContainsKey(node.Key.westNeighbour))
+            {
+                //no neigbour so add it to available list
+                availableList.Add(node.Key.westNeighbour);
+            }
+            if (!nodes.ContainsKey(node.Key.southNeighbour))
+            {
+                //no neigbour so add it to available list
+                availableList.Add(node.Key.southNeighbour);
+            }
+        }
+        foreach (Point point in availableList)
+        {
+          
+              GameObject emptytile = Instantiate(emptyTilePrefab, new Vector2(TileSize * point.x, TileSize * point.y), Quaternion.identity);
+        }
+        if (availableList.Contains(checkpoint))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
     }
 
     public void TakeATurn()
@@ -894,49 +941,7 @@ public class BoardManager : Singleton<BoardManager>
             return 0;
         }
     }
-
-    public bool CheckAvailableNodes(Point checkNode)
-    {
-        //used placed cards list to create a list of available spaces
-        // clear out available list on each pass
-        HashSet<Point> availableList = new HashSet<Point>();
-        availableList.Clear();
-        //for each node in nodelist - check for empty neighbours and add them to available list
-
-        foreach (KeyValuePair<Point, Node> node in nodes)
-        {
-            if (!nodes.ContainsKey(node.Key.northNeighbour))
-            {
-                //no neigbour so add it to available list
-                availableList.Add(node.Key.northNeighbour);
-            }
-            if (!nodes.ContainsKey(node.Key.eastNeighbour))
-            {
-                //no neigbour so add it to available list
-                availableList.Add(node.Key.eastNeighbour);
-            }
-            if (!nodes.ContainsKey(node.Key.westNeighbour))
-            {
-                //no neigbour so add it to available list
-                availableList.Add(node.Key.westNeighbour);
-            }
-            if (!nodes.ContainsKey(node.Key.southNeighbour))
-            {
-                //no neigbour so add it to available list
-                availableList.Add(node.Key.southNeighbour);
-            }
-        }
-
-        if (availableList.Contains(checkNode))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-
-
+    
     }
 
 }
