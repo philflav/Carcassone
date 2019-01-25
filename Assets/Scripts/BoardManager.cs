@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 //Infinite Board
@@ -31,6 +32,9 @@ public class BoardManager : Singleton<BoardManager>
     GameObject[] gameTilePrefab;
 
     public CardManager cardManager;
+    public Text txt;
+
+    public int roadTot, cityTot, monastryTot, gameTot; //Score totals
 
     public HashSet<Point> availableList;
 
@@ -44,6 +48,7 @@ public class BoardManager : Singleton<BoardManager>
     public Stack<GameObject> cardStack;
     public GameObject checkTile;
     public GameObject nextCard;
+    public bool cardWasPlaced = false;
 
     public Sprite nextSprite = null;
     public Point nextPoint;
@@ -51,8 +56,6 @@ public class BoardManager : Singleton<BoardManager>
 
     public Dictionary<Point, Node> nodes { get; set; }  // a dictionary of placed tiles
 
-
-    public int score; //to hold cumulative score as each tile is placed.
 
     //use starttile prefab to set Tilesize
     //assume square tiles for this game
@@ -65,12 +68,10 @@ public class BoardManager : Singleton<BoardManager>
 
     private Vector3 worldOrigin;
 
-
-
     // Start is called before the first frame update
     void Start()
     {
-        UnityEngine.Random.seed = randomSeed; //Uncomment here to create a repeatable map
+        //UnityEngine.Random.seed = randomSeed; //Uncomment here to create a repeatable map
 
         CardManager cardManager = gameObject.AddComponent(typeof(CardManager)) as CardManager;
 
@@ -86,23 +87,20 @@ public class BoardManager : Singleton<BoardManager>
         TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
 
         PlaceStartTile();
-        nextCard = cardStack.Pop();
-        nextTile = nextCard.GetComponent<TileScript>();
-        Sprite nextSprite = nextTile.GetComponent<SpriteRenderer>().sprite;
-        Hover.Instance.Activate(nextSprite);
-        MarkAvailable(new Point(0, 0), nextTile);
+        cardWasPlaced = true;
+        ClickonDeck();
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+     
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            //this just randomply adds tiles
-            TakeATurn();
+            Application.Quit();
         }
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.R))
         {
             PlaceDirection++;
             if (PlaceDirection > 3) PlaceDirection = 0;
@@ -111,16 +109,18 @@ public class BoardManager : Singleton<BoardManager>
             ClearMarkers();
             MarkAvailable(nextPoint, nextTile);
         }
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0)||Input.GetKeyDown(KeyCode.Space))
             
         {
-            nextPoint = new Point(Hover.Instance.gridX, Hover.Instance.gridY);
+            nextPoint.x = Hover.Instance.gridX;
+            nextPoint.y = Hover.Instance.gridY;
             //Sprite nextSprite = nextCard.GetComponent<SpriteRenderer>().sprite;
             //Check legal placement          
             if (MarkAvailable(nextPoint, nextTile))
                 {
                         PlaceNewTile(nextCard, nextPoint, nextTile.placeDirection);
-                        Debug.Log(" Placing tile @ " + nextPoint.x + "," + nextPoint.y);
+                //Debug.Log(" Placing tile @ " + nextPoint.x + "," + nextPoint.y);
+                        cardWasPlaced = true;
                         ClearMarkers();
                         Hover.Instance.Deactivate();
                 }
@@ -134,16 +134,21 @@ public class BoardManager : Singleton<BoardManager>
     }
     public void ClickonDeck()
     {
-        Debug.Log("Card Deck");
-        nextCard = cardStack.Pop();
-        nextTile = nextCard.GetComponent<TileScript>();
-        PlaceDirection = 0;
-        nextTile.placeDirection = (TileScript.Direction)PlaceDirection;
-        nextSprite = nextTile.GetComponent<SpriteRenderer>().sprite;
-        Hover.Instance.Activate(nextSprite);
-        Hover.Instance.Rotate(nextSprite, PlaceDirection);
-        Hover.Instance.Activate(nextSprite);
-        MarkAvailable(nextPoint, nextTile);
+        if (cardWasPlaced)
+        {
+            //only do this if previous card was placed
+            nextCard = cardStack.Pop();
+            //txt.text = cardStack.Count().ToString();
+            GameObject.Find("CardDeck").GetComponentInChildren<Text>().text = cardStack.Count().ToString();
+            nextTile = nextCard.GetComponent<TileScript>();
+            PlaceDirection = 0;
+            cardWasPlaced = false;
+            nextTile.placeDirection = (TileScript.Direction)PlaceDirection;
+            nextSprite = nextTile.GetComponent<SpriteRenderer>().sprite;
+            Hover.Instance.Activate(nextSprite);
+            Hover.Instance.Rotate(nextSprite, PlaceDirection);
+            MarkAvailable(nextPoint, nextTile);
+        }
     }
     public void ClearMarkers()
     {
@@ -156,7 +161,6 @@ public class BoardManager : Singleton<BoardManager>
     }
     public bool MarkAvailable(Point checkpoint, TileScript checkTile)
     {
-        Debug.Log("Marking Available Nodes");
         HashSet<Point> availableList = new HashSet<Point>();
         availableList.Clear();
         //delete all emptyTile Game objects first
@@ -190,13 +194,14 @@ public class BoardManager : Singleton<BoardManager>
         }
         foreach (Point point in availableList)
         {
-            if (CheckNeighbours(checkTile, point))
+            if (CheckNeighbours(checkTile, point)&&!cardWasPlaced)
             {
                 //show an empty tile if legal placement available
                 GameObject emptytile = Instantiate(emptyTilePrefab, new Vector2(TileSize * point.x, TileSize * point.y), Quaternion.identity);
             }
+
         }
-        if (availableList.Contains(checkpoint))
+        if (availableList.Contains(checkpoint) && CheckNeighbours(checkTile, checkpoint))
         {
             return true;
         }
@@ -289,7 +294,7 @@ public class BoardManager : Singleton<BoardManager>
         bool eastCheck = true;
         bool westCheck = true;
 
-        Debug.Log("Checking Neighbours of "+checkTile+ " @ "+checkPoint.x + ":" + checkPoint.y );
+        //Debug.Log("Checking Neighbours of "+checkTile+ " @ "+checkPoint.x + ":" + checkPoint.y );
 
         if (nodes.ContainsKey(checkPoint.northNeighbour))
         {
@@ -297,56 +302,56 @@ public class BoardManager : Singleton<BoardManager>
             //CheckDirection North
 
             TileScript NneighbourNode = nodes[checkPoint.northNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking North :/n");
+            //Debug.Log("Checking North :/n");
             northCheck = CheckDirection(checkTile, NneighbourNode, TileScript.Direction.North);
-            Debug.Log(northCheck.ToString());
+            //Debug.Log(northCheck.ToString());
         }
         else
         {
-            Debug.Log("No North neighbour check required");
+           // Debug.Log("No North neighbour check required");
         }
 
         if (nodes.ContainsKey(checkPoint.southNeighbour) && northCheck)
         {
             //CheckDirection South
             TileScript SneighbourNode = nodes[checkPoint.southNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking South :/n");
+           // Debug.Log("Checking South :/n");
             southCheck = CheckDirection(checkTile, SneighbourNode, TileScript.Direction.South);
-            Debug.Log(southCheck.ToString());
+            //Debug.Log(southCheck.ToString());
         }
         else
         {
-            Debug.Log("No South neighbour check required");
+            //Debug.Log("No South neighbour check required");
         }
 
         if (nodes.ContainsKey(checkPoint.eastNeighbour) && southCheck)
         {
             //CheckDirection East
             TileScript EneighbourNode = nodes[checkPoint.eastNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking East :/n");
+            //Debug.Log("Checking East :/n");
             eastCheck = CheckDirection(checkTile, EneighbourNode, TileScript.Direction.East);
-            Debug.Log(eastCheck.ToString());
+            //Debug.Log(eastCheck.ToString());
         }
         else
         {
-            Debug.Log("No East neighbour check required");
+           // Debug.Log("No East neighbour check required");
         }
 
         if (nodes.ContainsKey(checkPoint.westNeighbour) && eastCheck)
         {
             //CheckDirection West
             TileScript WneighbourNode = nodes[checkPoint.westNeighbour].TileRef.GetComponent<TileScript>();
-            Debug.Log("Checking West : /n");
+            //Debug.Log("Checking West : /n");
             westCheck = CheckDirection(checkTile, WneighbourNode, TileScript.Direction.West);
-            Debug.Log(westCheck.ToString());
+            //Debug.Log(westCheck.ToString());
         }
         else
         {
-            Debug.Log("No West neighbour check required");
+            //Debug.Log("No West neighbour check required");
         }
 
 
-        Debug.Log("Neighbour check: " + checkTile+"@ "+checkPoint.x+","+checkPoint.y+"  :"+(northCheck && southCheck && eastCheck && westCheck));
+        //Debug.Log("Neighbour check: " + checkTile+"@ "+checkPoint.x+","+checkPoint.y+"  :"+(northCheck && southCheck && eastCheck && westCheck));
 
         return northCheck && southCheck && eastCheck && westCheck;
 
@@ -354,7 +359,7 @@ public class BoardManager : Singleton<BoardManager>
 
     private bool CheckDirection(TileScript CheckTile, TileScript NeighbourTile, TileScript.Direction direction)
     {
-        Debug.Log("Checking " + CheckTile + " with " + NeighbourTile + " in direction " + direction);
+       // Debug.Log("Checking " + CheckTile + " with " + NeighbourTile + " in direction " + direction);
 
 
 
@@ -417,7 +422,8 @@ public class BoardManager : Singleton<BoardManager>
         newTileScript.placeDirection = direction;
         newTileScript.Setup(point, newTile.transform.position); //setup the tiles grid position
         nodes.Add(point, new Node(newTile.GetComponent<TileScript>()));
-        score += inPlayScore(newTile);
+        gameTot += inPlayScore(newTile);
+        GameObject.Find("TotalScore").GetComponent<Text>().text = "Game Total:" + gameTot.ToString();
     }
 
 
@@ -428,24 +434,23 @@ public class BoardManager : Singleton<BoardManager>
         //ToDo  City with Shield
         //ToDo  Partial scores for end game
         //ToDo  Assign score to claims (Meeples)
+        int roadScore = roadComplete(currentCard);
+        int cityScore = cityComplete(currentCard);
+        int monastryScore = monastryCompleted(currentCard);
 
-        int totalScore = roadComplete(currentCard) + cityComplete(currentCard) + monastryCompleted(currentCard);
+        roadTot += roadScore;
+        cityTot += cityScore;
+        monastryTot += monastryScore;
 
-        Debug.Log("Total Score on turn "+totalScore);
+        GameObject.Find("RoadScore").GetComponent<Text>().text = "Roads:"+roadTot.ToString() +" ("+roadScore+")";
+        GameObject.Find("CityScore").GetComponent<Text>().text = "Cities:"+cityTot.ToString() + " (" + cityScore + ")";
+        GameObject.Find("MonastryScore").GetComponent<Text>().text = "Monastries:"+monastryTot.ToString() + " (" + monastryScore + ")";
 
-        return totalScore;
-        //Check for Completed Road
+        gameTot = roadTot + cityTot + monastryTot;
 
-        //return roadComplete(currentCard);
 
-        //Check for completed city
+        return roadScore + cityScore + monastryScore;
 
-        // return cityComplete(currentCard);
-
-        //Check for completed monastry 
-
-        // 
-        //return 0;  //returns score for currentCards
     }
 
     public int roadComplete(GameObject currentCard)
@@ -487,7 +492,7 @@ public class BoardManager : Singleton<BoardManager>
             {
                 int tmp = isCompleteRoad(currentTile, edges[1]);
                 if (tmp > 0)
-                //if 2 road ends found
+                //if both road ends found
                 {
                     roadScore += tmp - 1;//subtract 1 becasue we start checking from the same tile twice
                 }
@@ -906,6 +911,7 @@ public class BoardManager : Singleton<BoardManager>
             currentTile = tilesToCheck.Pop();
             monastryScore += CompletedMonastry(currentTile);
         }
+        if (monastryScore == 8) monastryScore++; //add one for the central tile.
         return monastryScore ;
 
     }
