@@ -90,6 +90,7 @@ public class BoardManager : Singleton<BoardManager>
         nextTile = nextCard.GetComponent<TileScript>();
         Sprite nextSprite = nextTile.GetComponent<SpriteRenderer>().sprite;
         Hover.Instance.Activate(nextSprite);
+        MarkAvailable(new Point(0, 0), nextTile);
 
     }
 
@@ -107,45 +108,61 @@ public class BoardManager : Singleton<BoardManager>
             if (PlaceDirection > 3) PlaceDirection = 0;
             nextTile.placeDirection = (TileScript.Direction)PlaceDirection;
             Hover.Instance.Rotate(nextSprite, PlaceDirection);
+            ClearMarkers();
+            MarkAvailable(nextPoint, nextTile);
         }
         if (Input.GetMouseButtonDown(0))
             
         {
             nextPoint = new Point(Hover.Instance.gridX, Hover.Instance.gridY);
-            Sprite nextSprite = nextCard.GetComponent<SpriteRenderer>().sprite;
+            //Sprite nextSprite = nextCard.GetComponent<SpriteRenderer>().sprite;
             //Check legal placement          
-            if (MarkAvailable(nextPoint))
-            {
-                //Place an empty tile on each available node and colour it red or green
-                Debug.Log("Nodes Available");
-                if (CheckNeighbours(nextTile, nextPoint))
+            if (MarkAvailable(nextPoint, nextTile))
                 {
-                    PlaceNewTile(nextCard, nextPoint, nextTile.placeDirection);
-                    Debug.Log(" Placing tile @ " + nextPoint.x + "," + nextPoint.y);
-                    nextCard = cardStack.Pop();
-                    nextTile = nextCard.GetComponent<TileScript>();
-                    PlaceDirection = 0;
-                    nextTile.placeDirection = (TileScript.Direction)PlaceDirection;
-                    nextSprite = nextTile.GetComponent<SpriteRenderer>().sprite;
-                    Hover.Instance.Activate(nextSprite);
-                    Hover.Instance.Rotate(nextSprite, PlaceDirection);
+                        PlaceNewTile(nextCard, nextPoint, nextTile.placeDirection);
+                        Debug.Log(" Placing tile @ " + nextPoint.x + "," + nextPoint.y);
+                        ClearMarkers();
+                        Hover.Instance.Deactivate();
                 }
                 else
                 {
                     Debug.Log("Can't place here! - illegal placement");
                 }
-            }
-            else
-            {
-                Debug.Log("Can't place here! - not available");
-            }
+            
+ 
         }
     }
-    public bool MarkAvailable(Point checkpoint)
+    public void ClickonDeck()
+    {
+        Debug.Log("Card Deck");
+        nextCard = cardStack.Pop();
+        nextTile = nextCard.GetComponent<TileScript>();
+        PlaceDirection = 0;
+        nextTile.placeDirection = (TileScript.Direction)PlaceDirection;
+        nextSprite = nextTile.GetComponent<SpriteRenderer>().sprite;
+        Hover.Instance.Activate(nextSprite);
+        Hover.Instance.Rotate(nextSprite, PlaceDirection);
+        Hover.Instance.Activate(nextSprite);
+        MarkAvailable(nextPoint, nextTile);
+    }
+    public void ClearMarkers()
+    {
+        GameObject[] gameObjects = GameObject.FindGameObjectsWithTag("empty");
+
+        for (var i = 0; i < gameObjects.Length; i++)
+        {
+            Destroy(gameObjects[i]);
+        }
+    }
+    public bool MarkAvailable(Point checkpoint, TileScript checkTile)
     {
         Debug.Log("Marking Available Nodes");
         HashSet<Point> availableList = new HashSet<Point>();
         availableList.Clear();
+        //delete all emptyTile Game objects first
+        //ClearMarkers();
+
+
         //for each node in nodelist - check for empty neighbours and add them to available list
 
         foreach (KeyValuePair<Point, Node> node in nodes)
@@ -173,8 +190,11 @@ public class BoardManager : Singleton<BoardManager>
         }
         foreach (Point point in availableList)
         {
-          
-              GameObject emptytile = Instantiate(emptyTilePrefab, new Vector2(TileSize * point.x, TileSize * point.y), Quaternion.identity);
+            if (CheckNeighbours(checkTile, point))
+            {
+                //show an empty tile if legal placement available
+                GameObject emptytile = Instantiate(emptyTilePrefab, new Vector2(TileSize * point.x, TileSize * point.y), Quaternion.identity);
+            }
         }
         if (availableList.Contains(checkpoint))
         {
@@ -269,7 +289,7 @@ public class BoardManager : Singleton<BoardManager>
         bool eastCheck = true;
         bool westCheck = true;
 
-        //Debug.Log("Checking Neighbours for Node at "+checkPoint.x + ":" + checkPoint.y );
+        Debug.Log("Checking Neighbours of "+checkTile+ " @ "+checkPoint.x + ":" + checkPoint.y );
 
         if (nodes.ContainsKey(checkPoint.northNeighbour))
         {
@@ -942,9 +962,9 @@ public class BoardManager : Singleton<BoardManager>
         }
     }
     
-    }
-
 }
+
+
 
 
    
