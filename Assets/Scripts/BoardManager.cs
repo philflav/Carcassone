@@ -49,6 +49,7 @@ public class BoardManager : Singleton<BoardManager>
     public GameObject checkTile;
     public GameObject nextCard;
     public bool cardWasPlaced = false;
+    public bool gameStarted = false;
 
     public Sprite nextSprite = null;
     public Point nextPoint;
@@ -72,7 +73,7 @@ public class BoardManager : Singleton<BoardManager>
     void Start()
     {
         //UnityEngine.Random.seed = randomSeed; //Uncomment here to create a repeatable map
-
+        //GameObject.Find("GameOver").GetComponent<Text>().enabled = false;
         CardManager cardManager = gameObject.AddComponent(typeof(CardManager)) as CardManager;
 
         cardStack = cardManager.MakeStack(gameTilePrefab);
@@ -86,16 +87,12 @@ public class BoardManager : Singleton<BoardManager>
         //setup directions array;
         TileScript.Direction[] directions = new TileScript.Direction[] { TileScript.Direction.North, TileScript.Direction.South, TileScript.Direction.East, TileScript.Direction.West };
 
-        PlaceStartTile();
-        cardWasPlaced = true;
-        ClickonDeck();
-
-    }
+   }
 
     // Update is called once per frame
     void Update()
     {
-     
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
@@ -134,20 +131,37 @@ public class BoardManager : Singleton<BoardManager>
     }
     public void ClickonDeck()
     {
+        if (!gameStarted)
+        {
+            gameStarted = true;
+            GameObject.Find("Instructions").GetComponent<Text>().enabled = false;
+            PlaceStartTile();
+            cardWasPlaced = true;
+        }
+
         if (cardWasPlaced)
         {
             //only do this if previous card was placed
-            nextCard = cardStack.Pop();
-            //txt.text = cardStack.Count().ToString();
-            GameObject.Find("CardDeck").GetComponentInChildren<Text>().text = cardStack.Count().ToString();
-            nextTile = nextCard.GetComponent<TileScript>();
-            PlaceDirection = 0;
-            cardWasPlaced = false;
-            nextTile.placeDirection = (TileScript.Direction)PlaceDirection;
-            nextSprite = nextTile.GetComponent<SpriteRenderer>().sprite;
-            Hover.Instance.Activate(nextSprite);
-            Hover.Instance.Rotate(nextSprite, PlaceDirection);
-            MarkAvailable(nextPoint, nextTile);
+            if (cardStack.Count() > 0  )
+            {
+                nextCard = cardStack.Pop();
+                //txt.text = cardStack.Count().ToString();
+                GameObject.Find("CardDeck").GetComponentInChildren<Text>().text = cardStack.Count().ToString();
+                nextTile = nextCard.GetComponent<TileScript>();
+                PlaceDirection = 0;
+                cardWasPlaced = false;
+                nextTile.placeDirection = (TileScript.Direction)PlaceDirection;
+                nextSprite = nextTile.GetComponent<SpriteRenderer>().sprite;
+                Hover.Instance.Activate(nextSprite);
+                Hover.Instance.Rotate(nextSprite, PlaceDirection);
+                MarkAvailable(nextPoint, nextTile);
+            }
+            else
+            {
+                //Game Over - do something.
+
+            }
+
         }
     }
     public void ClearMarkers()
@@ -591,7 +605,7 @@ public class BoardManager : Singleton<BoardManager>
 
         //Debug.Log(">>>Checking " + startTile + "from " + startPoint.x + "," + startPoint.y+" in direction "+edge);
 
-        while (tilesToCheck.Count > 0 && !roadEndFound && safety < 10)
+        while (tilesToCheck.Count > 0 && !roadEndFound && safety < 100)
         {
             safety++;  //prevent infinite loop
             currentTile = tilesToCheck.Pop();
@@ -787,6 +801,7 @@ public class BoardManager : Singleton<BoardManager>
                 if (edges.Count() == 1)
                 {
                     cityScore++;
+                    if (currentTile.HasShield()) cityScore++;
                     T++; //closing edge
                     tmp = hasNeighbour(currentTile, edges[0]);
                     if (tmp)
@@ -798,6 +813,7 @@ public class BoardManager : Singleton<BoardManager>
                 {
                     //if edges are not connected increment T
                     cityScore++;
+                    if (currentTile.HasShield()) cityScore++;
                     if (!currentTile.HasCityCentre())
                     {
                         //Debug.Log(currentTile + " does not have connected city edges");
@@ -822,6 +838,7 @@ public class BoardManager : Singleton<BoardManager>
                 else if (edges.Count() == 3)
                 {
                     cityScore++;
+                    if (currentTile.HasShield()) cityScore++;
                     S++; //add a split
                     tmp = hasNeighbour(currentTile, edges[0]);
                     if (tmp)
@@ -843,6 +860,7 @@ public class BoardManager : Singleton<BoardManager>
                 else if (edges.Count() == 4)
                 {
                     cityScore++;
+                    if (currentTile.HasShield()) cityScore++;
                     S += 2; //add 2 splits
                     tmp = hasNeighbour(currentTile, edges[0]);
                     if (tmp)
@@ -873,7 +891,7 @@ public class BoardManager : Singleton<BoardManager>
         {
             //We found a complete segment
 
-            Debug.Log("Completed City @ " + currentPoint.x + "," + currentPoint.y + " T:" + T + " S:" + S + " CityScore:" + cityScore);
+            //Debug.Log("Completed City @ " + currentPoint.x + "," + currentPoint.y + " T:" + T + " S:" + S + " CityScore:" + cityScore);
 
             return cityScore;
         }

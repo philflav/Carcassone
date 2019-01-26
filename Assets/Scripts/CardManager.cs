@@ -4,41 +4,35 @@ using UnityEngine;
 
 public class CardManager : MonoBehaviour
 {
+     public List<GameObject> deck = new List<GameObject>();
      public Stack <GameObject> gamestack;
-     public Stack <GameObject> MakeStack(GameObject [] cards)
+     public Stack<GameObject> MakeStack(GameObject[] cards)
     {
 
 
         gamestack = new Stack <GameObject>();
-        int numberOfCards = cards.Length;
-        int stackSize = 0; //Stack size will be >= numberOfCards of cards
-        int stackCount = 0;
 
-        int[] deckCount = new int[numberOfCards];
+        //for each card type
+        for (int i = 0; i < cards.Length; i++)
+        {
+            //add the correct number of cards to the deck
 
-        //read repeats and setup number of cars to be sum of repeats
-        for (int i = 0; i < numberOfCards; i++)
-        {
-            deckCount[i] = cards[i].GetComponent<TileScript>().CardsInDeck;
-            stackSize += deckCount[i];
-            
-        }
-        while (stackCount < stackSize)
-        {
-            //choose a random card
-            int rnd = UnityEngine.Random.Range(0, numberOfCards);
-            GameObject newcard =  cards[rnd];
-            //are there still any of this card available
-            if (deckCount[rnd]>0)
+            for (int j = 0; j < cards[i].GetComponent<TileScript>().CardsInDeck; j++)
             {
-                gamestack.Push(newcard);
-                stackCount++;
-                //reduce the count of this card available for adding to stack
-                deckCount[rnd]--;
+                deck.Add(cards[i]);
             }
         }
+        //now shuffle
+        while (deck.Count>0)
+        {
+            //choose a random card
+            int rnd = UnityEngine.Random.Range(0, deck.Count);
+            gamestack.Push(deck[rnd]);
+            //now remove it from the list
+            deck.RemoveAt(rnd);
 
-        return  gamestack;
+        }
+         return  gamestack;
     }
 
     public GameObject drawCard(Stack <GameObject> gamestack)
@@ -55,6 +49,20 @@ public class CardManager : MonoBehaviour
         }
     }
 
+
+}
+public static class StackExtensions
+{
+    public static void Shuffle<T>(this IList<T> list)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            var temp = list[i];
+            var index = UnityEngine.Random.Range(0, list.Count);
+            list[i] = list[index];
+            list[index] = temp;
+        }
+    }
 }
 
 

@@ -1,5 +1,5 @@
 {
-"companyName": "DefaultCompany",
+"companyName": "Phil F",
 "productName": "Carcassone",
 "dataUrl": "Builds.data.unityweb",
 "wasmCodeUrl": "Builds.wasm.code.unityweb",
@@ -7,7 +7,8 @@
 "TOTAL_MEMORY": 268435456,
 "graphicsAPI": ["WebGL 2.0", "WebGL 1.0"],
 "webglContextAttributes": {"preserveDrawingBuffer": false},
+"backgroundUrl": "Builds.jpg",
 "splashScreenStyle": "Dark",
-"backgroundColor": "#231F20",
+"backgroundColor": "#FFFFFF",
 "cacheControl": {"default": "must-revalidate"}
 }

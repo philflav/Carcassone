@@ -215,6 +215,17 @@ public class TileScript : MonoBehaviour
             return false;
         }
     }
+    public bool HasShield()
+    {
+        if(this.C == Structure.Shield)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
    
     public bool IsMonastry()
