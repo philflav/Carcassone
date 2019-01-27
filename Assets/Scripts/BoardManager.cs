@@ -487,7 +487,8 @@ public class BoardManager : Singleton<BoardManager>
         TileScript currentTile = currentCard.GetComponent<TileScript>();
         List<TileScript.Direction> edges = new List<TileScript.Direction> { };
 
-
+        Tuple<int, bool> result;
+      
         edges = currentTile.hasRoadEdges();  //find the number of road edges on the current tile
         currentPoint = currentTile.GridPosition;
 
@@ -496,15 +497,17 @@ public class BoardManager : Singleton<BoardManager>
         if (edges.Count() == 1)
         {
             //Debug.Log("1 road edge");
-            roadScore = isCompleteRoad(currentTile, edges[0]);
+            result = isCompleteRoad(currentTile, edges[0]);
+            roadScore = result.Item1;
         }
         if (edges.Count() == 2)
         {
             // Debug.Log("2 road edge .... need to follow to the end to start complete road check");
-            roadScore = isCompleteRoad(currentTile, edges[0]);
-            if (roadScore > 0)
+            result = isCompleteRoad(currentTile, edges[0]);
+            roadScore = result.Item1;
+            if (roadScore > 0 && !result.Item2) //look the other way if road is not a loop
             {
-                int tmp = isCompleteRoad(currentTile, edges[1]);
+                int tmp = isCompleteRoad(currentTile, edges[1]).Item1;
                 if (tmp > 0)
                 //if both road ends found
                 {
@@ -521,18 +524,18 @@ public class BoardManager : Singleton<BoardManager>
         if (edges.Count() == 3)
         {
             // Debug.Log("3 road edges");
-            roadScore = isCompleteRoad(currentTile, edges[0]);
-            roadScore += isCompleteRoad(currentTile, edges[1]);
-            roadScore += isCompleteRoad(currentTile, edges[2]);
+            roadScore = isCompleteRoad(currentTile, edges[0]).Item1;
+            roadScore += isCompleteRoad(currentTile, edges[1]).Item1;
+            roadScore += isCompleteRoad(currentTile, edges[2]).Item1;
         }
         if (edges.Count() == 4)
         {
             // Debug.Log("4 road edges");
 
-            roadScore = isCompleteRoad(currentTile, edges[0]);
-            roadScore += isCompleteRoad(currentTile, edges[1]);
-            roadScore += isCompleteRoad(currentTile, edges[2]);
-            roadScore += isCompleteRoad(currentTile, edges[3]);
+            roadScore = isCompleteRoad(currentTile, edges[0]).Item1;
+            roadScore += isCompleteRoad(currentTile, edges[1]).Item1;
+            roadScore += isCompleteRoad(currentTile, edges[2]).Item1;
+            roadScore += isCompleteRoad(currentTile, edges[3]).Item1;
 
         }
 
@@ -570,13 +573,15 @@ public class BoardManager : Singleton<BoardManager>
             return null;
         }
     }
-    int isCompleteRoad(TileScript startTile, TileScript.Direction edge)
+    public Tuple<int ,bool> isCompleteRoad(TileScript startTile, TileScript.Direction edge)
     {
         //returns score for a complete road starting from currentTile on edge
-        //retruns zero score for incomplete road segments.
+        //returns zero score for incomplete road segments.
+        //returns boolean = true if roadloop found
 
 
         bool roadEndFound = false;
+        bool roadStartFound = false;
 
 
 
@@ -609,6 +614,7 @@ public class BoardManager : Singleton<BoardManager>
         {
             safety++;  //prevent infinite loop
             currentTile = tilesToCheck.Pop();
+
             if (!tileprevious.Contains(currentTile))
             {
 
@@ -623,22 +629,34 @@ public class BoardManager : Singleton<BoardManager>
                     if (!(startPoint == endPoint))
                     {
                         //Debug.Log(">>>>Road found from :" + startPoint.x + "," + startPoint.y + " to " + endPoint.x + "," + endPoint.y);
-                        return roadScore;
+                        return Tuple.Create(roadScore, false);
                     }
                     else
                     {
-                        return 0;
+                        return Tuple.Create(0, false);
                     }
                 }
                 else if (edges.Count() == 2)
                 {
                     tmp = hasNeighbour(currentTile, edges[0]);
+                    if(tmp.GridPosition==startPoint && roadScore > 3)
+                    {
+                        //we've gone in a loop
+                        roadEndFound = true;
+                        return Tuple.Create(roadScore, true); //return true to indicate loop
+                    }
                     if (tmp)
                     {
                         tilesToCheck.Push(tmp);
                         //Debug.Log("Neighbour" + edges[0]);
                     }
                     tmp = hasNeighbour(currentTile, edges[1]);
+                    if (tmp.GridPosition == startPoint && roadScore > 3)
+                    {
+                        //we've gone in a loop
+                        roadEndFound = true;
+                        return Tuple.Create(roadScore, true); //return true to indicate loop
+                    }
                     if (tmp)
                     {
                         tilesToCheck.Push(tmp);
@@ -649,7 +667,7 @@ public class BoardManager : Singleton<BoardManager>
 
             }
         }
-        return 0;
+        return Tuple.Create(0, false);
     }
 
     public int cityComplete(GameObject currentCard)

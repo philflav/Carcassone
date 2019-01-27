@@ -35,7 +35,7 @@ public struct Point
     {
         return A.x == B.x && A.y == B.y;
     }
-    // note both == and != must be defined
+    // note both == and != must be defined.
     public static bool operator !=(Point A, Point B)
     {
         return A.x != B.x || A.y != B.y;
@@ -44,7 +44,16 @@ public struct Point
     {
         return new Point(A.x - B.x, A.y - B.y);
     }
-    
 
-
+    public  bool Equals(Point A, Point B)
+    {
+        return A.x == B.x && A.y == B.y;
+    }
+    public int GetHashCode(Point obj)
+    {
+        return obj.GetHashCode();
+    }
 }
+
+
+
