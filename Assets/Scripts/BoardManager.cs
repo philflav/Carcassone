@@ -116,14 +116,13 @@ public class BoardManager : Singleton<BoardManager>
             if (MarkAvailable(nextPoint, nextTile))
                 {
                         PlaceNewTile(nextCard, nextPoint, nextTile.placeDirection);
-                //Debug.Log(" Placing tile @ " + nextPoint.x + "," + nextPoint.y);
                         cardWasPlaced = true;
                         ClearMarkers();
                         Hover.Instance.Deactivate();
                 }
                 else
                 {
-                    Debug.Log("Can't place here! - illegal placement");
+                        Debug.Log("Can't place here! - illegal placement");
                 }
             
  
@@ -138,10 +137,9 @@ public class BoardManager : Singleton<BoardManager>
             PlaceStartTile();
             cardWasPlaced = true;
         }
-
-        if (cardWasPlaced)
+        else if (cardWasPlaced)
         {
-            //only do this if previous card was placed
+            //only do this if previous card has been placed
             if (cardStack.Count() > 0  )
             {
                 nextCard = cardStack.Pop();
@@ -641,7 +639,7 @@ public class BoardManager : Singleton<BoardManager>
                     tmp = hasNeighbour(currentTile, edges[0]);
                     if(tmp.GridPosition==startPoint && roadScore > 3)
                     {
-                        //we've gone in a loop
+                        //we've gone in a loop.
                         roadEndFound = true;
                         return Tuple.Create(roadScore, true); //return true to indicate loop
                     }
@@ -651,7 +649,7 @@ public class BoardManager : Singleton<BoardManager>
                         //Debug.Log("Neighbour" + edges[0]);
                     }
                     tmp = hasNeighbour(currentTile, edges[1]);
-                    if (tmp.GridPosition == startPoint && roadScore > 3)
+                    if (tmp !=null && tmp.GridPosition == startPoint && roadScore > 3)
                     {
                         //we've gone in a loop
                         roadEndFound = true;
@@ -696,7 +694,7 @@ public class BoardManager : Singleton<BoardManager>
             // Debug.Log(currentTile + " does not have connected city edges");
             cityScore = isCompletedCity(currentTile, edges[0]); //does this tile complete a city
             //Debug.Log("City score " + cityScore);
-            cityScore = isCompletedCity(currentTile, edges[1]); //does this tile complete a city
+            cityScore += isCompletedCity(currentTile, edges[1]); //does this tile complete a city
             //Debug.Log("City score " + cityScore);
         }
         if (edges.Count() == 2 && currentTile.HasCityCentre())
@@ -775,7 +773,8 @@ public class BoardManager : Singleton<BoardManager>
     {
 
         //returns score for a completed city segment starting from the startTile.
-        //Assumes the start tile is itself closed when calculating open or closed segments.
+        //
+        //Algorithm has a bug - whatto do about tiles with two edges that may belong to different cities.
 
 
 
@@ -792,10 +791,10 @@ public class BoardManager : Singleton<BoardManager>
 
         int safety = 0;
         int cityScore = 0;
-        int T = 0; //closed edge counter
         int S = 0; //open edge counter
 
         tilesToCheck.Push(startTile);
+        startPoint = startTile.GridPosition;
         tmp = hasNeighbour(startTile, edge);  //is there a neighbour on the edge    
         if (tmp)
         {
@@ -804,7 +803,7 @@ public class BoardManager : Singleton<BoardManager>
         }
         //tileprevious.Push(startTile); //mark startTile as checked
 
-        while (tilesToCheck.Count > 0 && safety < 10)
+        while (tilesToCheck.Count > 0 && safety < 100)
         {
             safety++;  //prevent infinite loop
             currentTile = tilesToCheck.Pop(); //get the next tile to check
@@ -818,12 +817,14 @@ public class BoardManager : Singleton<BoardManager>
                 currentPoint = currentTile.GridPosition;
                 if (edges.Count() == 1)
                 {
+                    S++;
                     cityScore++;
                     if (currentTile.HasShield()) cityScore++;
-                    T++; //closing edge
+
                     tmp = hasNeighbour(currentTile, edges[0]);
                     if (tmp)
                     {
+                        S--;
                         tilesToCheck.Push(tmp); //push neigbour onto stack
                     }
                 }
@@ -832,22 +833,22 @@ public class BoardManager : Singleton<BoardManager>
                     //if edges are not connected increment T
                     cityScore++;
                     if (currentTile.HasShield()) cityScore++;
-                    if (!currentTile.HasCityCentre())
-                    {
-                        //Debug.Log(currentTile + " does not have connected city edges");
-                        T++;
-                    }
-                    else
+                    if (currentTile.HasCityCentre())
                     {
                         //Debug.Log(currentTile + "has connected city edges");
+                        S++;
                         tmp = hasNeighbour(currentTile, edges[0]);
                         if (tmp)
                         {
+
+                            S--;
                             tilesToCheck.Push(tmp); //push neigbour onto stack
                         }
+                        S++;
                         tmp = hasNeighbour(currentTile, edges[1]);
                         if (tmp)
                         {
+                            S--;
                             tilesToCheck.Push(tmp); //push neigbour onto stack
                         }
 
@@ -857,20 +858,23 @@ public class BoardManager : Singleton<BoardManager>
                 {
                     cityScore++;
                     if (currentTile.HasShield()) cityScore++;
-                    S++; //add a split
+                    S += 3;
                     tmp = hasNeighbour(currentTile, edges[0]);
                     if (tmp)
                     {
+                        S--;
                         tilesToCheck.Push(tmp); //push neigbour onto stack
                     }
                     tmp = hasNeighbour(currentTile, edges[1]);
                     if (tmp)
                     {
+                        S--;
                         tilesToCheck.Push(tmp); //push neigbour onto stack
                     }
                     tmp = hasNeighbour(currentTile, edges[2]);
                     if (tmp)
                     {
+                        S--;
                         tilesToCheck.Push(tmp); //push neigbour onto stack
                     }
 
@@ -879,25 +883,29 @@ public class BoardManager : Singleton<BoardManager>
                 {
                     cityScore++;
                     if (currentTile.HasShield()) cityScore++;
-                    S += 2; //add 2 splits
+                    S += 4;
                     tmp = hasNeighbour(currentTile, edges[0]);
                     if (tmp)
                     {
+                        S--;
                         tilesToCheck.Push(tmp); //push neigbour onto stack
                     }
                     tmp = hasNeighbour(currentTile, edges[1]);
                     if (tmp)
                     {
+                        S--;
                         tilesToCheck.Push(tmp); //push neigbour onto stack
                     }
                     tmp = hasNeighbour(currentTile, edges[2]);
                     if (tmp)
                     {
+                        S--;
                         tilesToCheck.Push(tmp); //push neigbour onto stack
                     }
                     tmp = hasNeighbour(currentTile, edges[3]);
                     if (tmp)
                     {
+                        S--;
                         tilesToCheck.Push(tmp); //push neigbour onto stack
                     }
 
@@ -905,7 +913,8 @@ public class BoardManager : Singleton<BoardManager>
                 tileprevious.Push(currentTile); //make sure we don't check it again
             }
         }
-        if (T - 2 == S)
+        Debug.Log("S " + S + " score " + cityScore);    
+        if (S<=0 && cityScore>1) //check for >1 becasue a city can't score 0
         {
             //We found a complete segment
 
