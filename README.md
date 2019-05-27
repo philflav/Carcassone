@@ -2,7 +2,7 @@
 Private project.
 
 
-My version of teh board game Carcassone being developed using Unity
+My version of the board game Carcassone being developed using Unity
 
 Jan 2019. The project has now progressed to the following point (currently on the Infinite Board branch).
 
